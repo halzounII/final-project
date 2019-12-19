@@ -79,10 +79,10 @@ class Board {
     this.scoreCache = [
       [], // placeholder
       [ // for role 1
-        array.create(size, size),
-        array.create(size, size),
-        array.create(size, size),
-        array.create(size, size)
+        array.create(size, size), // dir = 1
+        array.create(size, size), // dir = 2
+        array.create(size, size), // dir = 3
+        array.create(size, size)  // dir = 4
       ],
       [ // for role 2
         array.create(size, size),

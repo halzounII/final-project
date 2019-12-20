@@ -130,7 +130,7 @@ class Board {
         self = this,
         len = this.board.length  // self.size
 
-    function update(x, y, dir) {   // what is "dir"?
+    function update(x, y, dir) { 
       var role = self.board[x][y]
       if (role !== R.reverse(R.com)) {
         var cs = scorePoint(self, x, y, R.com, dir)
@@ -269,7 +269,7 @@ class Board {
 
   //启发函数
   /*
-   * 变量starBread的用途是用来进行米子计算
+   * 变量starSpread的用途是用来进行米子计算
    * 所谓米子计算，只是，如果第一步尝试了一个位置A，那么接下来尝试的位置有两种情况：
    * 1: 大于等于活三的位置
    * 2: 在A的米子位置上

@@ -17,7 +17,7 @@ class players:
     empty = 0
     @staticmethod
     def reverse(Player):
-        return 1 if Player == 2 else 1
+        return 2 if Player == 1 else 1
 
 
 

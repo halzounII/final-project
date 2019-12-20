@@ -7,15 +7,17 @@ from evaluate_point import scorePoint
 from collections import deque
 from zobrist import z
 import config
-
-def matrix(size:int) -> list:
+# ToDo:
+#   1. add starTo to board
+#   2. modify place
+def matrix(size: int) -> list:
     return [[0 for i in range(size)] for j in range(size)]
 
-def fixScore(Type) -> int:  # prevent b
+def fixScore(Type: int) -> int:  # prevent b
     if s.blocked_four <= Type < s.four:
-        if s.blocked_four <= Type < (s.blocked_four + s.three): return s.three
-        elif (s.blocked_four + s.three) <= Type < s.blocked_four*2: return s.four
-        else: return s.four*2
+        if s.blocked_four <= Type < (s.blocked_four + s.three): return s.three     # 單死四
+        elif (s.blocked_four + s.three) <= Type < s.blocked_four*2: return s.four  # 死四活三
+        else: return s.four*2  # 雙死四
     return Type
 
 def starTO (point: tuple, points: list) -> bool:
@@ -36,19 +38,19 @@ class playersScore:        # new class
         
 class Board:
     def __init__(self, size: int) -> None:
-        self.evaluateCache = {}
+        self.evaluateCache = {}   # redundant?
         self.currentSteps = []
         self.allSteps = []   # all chess pieces put by both sides
-        self.stepsTail = []
+        self.stepsTail = []  #??
         self._last = [False,False]
-        self.count = 0
+        self.count = 0       #手數
         self.z = z
         if len(size):       # accept only integer, not lists
-            self.board = matrix(size)
-            self.size = size 
-            self.comScore = matrix(size)
-            self.humScore = matrix(size)
-            self.scoreCache = [ \
+            self.board = matrix(size)             #目前棋盤的落子狀況          
+            self.size = size                      #棋盤大小
+            self.comScore = matrix(size)          #AI在棋盤某一位置的(可能)得分
+            self.humScore = matrix(size)          #人類在棋盤某一位置的(可能)得分
+            self.scoreCache = [                   # used in evalueate-point.py                 
                 [],   # placeholder
                 [matrix(size) for i in range(4)],  # for player 1 
                 [matrix(size) for j in range(4)]]  # for player 2  
@@ -73,82 +75,84 @@ class Board:
         return False
 
      # score for a certain loc for a certain player
-    def initScore(self) -> None:  
+    def initScore(self) -> None:                      #初始化每一格的分數  
         for i in range(self.size):
             for j in range(self.size):
-                if self.board[i][j] == P.empty:
-                    if self.hasNeighbor(i, j, 2, 2):
-                        self.comScore[i][j] = scorePoint(self, i, j, P.com)
-                        self.humScore[i][j] = scorePoint(self, i, j ,P.hum)
+                if self.board[i][j] == P.empty:   
+                    if self.hasNeighbor(i, j, 2, 2):     #有鄰居的空格，計算在該格落子後可已獲得的分數
+                        self.comScore[i][j] = scorePoint(self.board, i, j, P.com)
+                        self.humScore[i][j] = scorePoint(self.board, i, j ,P.hum)
                 elif self.board[i][j] == P.com:
-                    self.comScore[i][j] = scorePoint(self, i ,j, P.com)
-                    self.humScore[i][j] = 0
+                    self.comScore[i][j] = scorePoint(self.board, i ,j, P.com)
+                    self.humScore[i][j] = 0             #該格為電腦棋，則玩家得分0
                 elif self.board[i][j] == P.hum:
-                    self.humScore[i][j] = scorePoint(self, i ,j, P.hum)
+                    self.humScore[i][j] = scorePoint(self.board, i ,j, P.hum)
                     self.comScore[i][j] = 0
 
-    def updateScore(self, place: tuple) -> None:     # p => place
-        radius = 4
+    def updateScore(self, place = playersScore()) -> None:     # p => place # 米字形更新分數
+        radius = 4                     #更新的距離半徑(遠於五格者不受影響)
         def update(x, y, direction):
             player = self.board[x][y]
-            if player != P.com:
-                cs = scorePoint(self, x, y, P.com, direction)
-                self.comScore[x][y] = cs
-                #statistics
+            if player != P.com:        #??
+                self.comScore[x][y] += scorePoint(self, x, y, P.com, direction)
+                pass #statistics
             else: self.comScore[x][y] = 0
-            if player != P.hum:
-                hs = scorePoint(self, x, y, P.hum, direction)
-                self.humScore[x][y] += hs
-                #statistics
+            if player != P.hum:       #??
+                self.humScore[x][y] += scorePoint(self, x, y, P.hum, direction)
+                pass #statistics
             else: self.humScore[x][y] = 0
         pass # optimization(optional)
         for i in range(-radius, radius+1):
-            if place[1] + i < 0: continue
-            if place[1] + i >= self.size : break
+            #橫排更新
+            if place[1] + i < 0: continue     #超出邊界但才剛開始遞迴，跳過
+            if place[1] + i >= self.size : break  #超出邊界，跳出
             update(place[0] + i, place[1] + i, 0)
+            #直行更新
         for i in range(-radius, radius+1):
             if place[0] + i < 0: continue
             if place[0] + i >= self.size: break
             update(place[0] + i, place[1] + i, 1)
+            #右下左上更新
         for i in range(-radius, radius+1):
             if place[0] + i < 0 or place[1] + i < 0: continue
             if place[0] + i >= self.size or place[1] + 1 >= self.size: break
             update(place[0] + i, place[1] + i, 2)
+            #右上左下更新
         for i in range(-radius, radius+1):
-            if place[0] + i < 0 or place [1] - i < 0: continue
-            if place[0] + i >= self.size or place[1] - i >= self.size: break # or continue?
+            if place[0] + i < 0 or place [1] - i > self.size: continue
+            if place[0] + i >= self.size or place[1] - i < 0: break # or continue?-solved
             update(place[0] + i, place[1] + i, 3)
 
     
     def put(self, place: tuple, player: int) -> None:
-        place.player = player
-        print(f'put[{place}] {player}')  # debug
+        place.player = player       #place has attribute "player"?
+        #if config.debug: print(f'put[{place}] {player}')
         self.board[place[0]][place[1]] = player
-        pass # zobrist.py
+        self.z.go(place[0], place[1], player)
         self.updateScore(place)
-        self.allSteps.append(place)
+        self.allSteps.append(place)   #把此步加到所有步數裡
         self.currentSteps.append(place)
         self.stepsTail = []  # ??
         self.count += 1
 
-    def remove(self, p):
-        #r = self.board[p[0]][p[1]]
-        # zobrist & debug
-        self.board[p[0]][p[1]] = P.empty
-        self.updateScore(p)
+    def remove(self, place) -> None:
+        self.z.go(place[0], place[1], self.board[place[0]][place[1]])
+        # debug
+        self.board[place[0]][place[1]] = P.empty
+        self.updateScore(place)
         self.allSteps.pop()
         self.currentSteps.pop()
         self.count -= 1
 
     # omit backward
-    def forward(self):
+    def forward(self): #??
         if len(self.stepsTail) < 2: return
         for i in range(2):
             s = self.stepsTail.pop()
             self.put(s, s.player)
             self.i = i
 
-    def evaluate(self, player: int) -> int:  # current total scores
+    def evaluate(self, player: int) -> int:  # 當前各自修正後的分數差距
         self.comMaxScore, self.humMaxScore = 0, 0
         for i in range(self.size):
             for j in range(self.size):  # board[i]??
@@ -157,8 +161,9 @@ class Board:
                 elif self.board[i][j] == P.hum:
                     self.humMaxScore += fixScore(self.humScore[i][j])
         return (1 if player == P.com else -1)*(self.comMaxScore - self.humMaxScore)
-
+    # starspread: 米字計算
     def generator(self, player: int, onlyThrees, starSpread) -> list:
+        if self.count <= 0: return [7,7] #棋局還沒開始
         fives = []
         com_fours = []; hum_fours = []
         com_blockedfours = []; hum_blockedfours = []
@@ -166,24 +171,26 @@ class Board:
         com_threes = []; hum_threes = []
         com_twos = deque(); hum_twos = deque()
         neighbors = []
-        if self.count <= 0: return [7,7]
         attackPoints = []
         defendPoints = []
         if starSpread and config.star: # config.py
-            i = len(self.currentSteps) - 1
+            i = len(self.currentSteps) - 1  
             while i >= 0:
-                place = self.currentSteps[i]
-                if (P.reverse(player) == P.com and place.scoreCom >= s.three) \
-                    or (P.reverse(player) == P.hum and place.scoreHum >= s.three):
-                    defendPoints.append(place); break
-                i -= 2 # ??
+                place = self.currentSteps[i]  #某一方的棋步
+                if (P.reverse(player) == P.com and place.scoreCom >= s.three)\
+                    or (P.reverse(player) == P.hum and place.scoreHum >= s.three): 
+                    #對方的防守點
+                    defendPoints.append(place); break  #表示對方該子在防守
+                i -= 2 # 上一步
             j = len(self.currentSteps) - 2
             while j >= 0:
                 place = self.currentSteps[i]
                 if (player == P.com and place.scoreCom >= s.three) \
                     or (player == P.hum and place.scoreHum >= s.three):
-                    attackPoints.append(place); break
-                j -= 2 # ??
+                    #己方的防守點
+                    attackPoints.append(place); break  #表示己方該子在進攻
+                j -= 2
+            #若沒有進攻/防守點，則設為首步
             if not len(attackPoints): 
                 attackPoints.append(self.currentSteps[0] if self.currentSteps[0].player == player else self.currentSteps[1])
             if not len(defendPoints):
@@ -192,8 +199,8 @@ class Board:
             for j in range(self.size):
                 if self.board[i][j] == P.empty:
                     if len(self.allSteps) < 6:
-                        if not self.hasNeighbor(i, j, 1, 1): continue
-                    elif not self.hasNeighbor(i, j, 2, 2): continue
+                        if not self.hasNeighbor(i, j, 1, 1): continue #??
+                    elif not self.hasNeighbor(i, j, 2, 2): continue   #??
                     
                     place = playersScore(i, j)    # replace p of place
                     place.scoreHum = self.humScore[i][j]

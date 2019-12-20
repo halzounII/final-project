@@ -16,7 +16,7 @@ def scorePoint(b, px: int, py: int, player: int, direction = None) -> int:
 
     if (not direction) or direction == 0: 
         reset()
-        # 直行向上是否有棋
+        # 橫排向右是否有棋
         for i in range(py+1,17):  # since py <= 15 
             if i >= size:
                 par['block'] += 1; break #超出棋盤，加block，跳出
@@ -29,7 +29,7 @@ def scorePoint(b, px: int, py: int, player: int, direction = None) -> int:
             elif t == player:
                 par['count'] += 1           #有己方棋，加count
             else: par['block'] += 1; break  #有對手棋，加block，跳出
-         #直行向下是否有棋
+         #橫排向左是否有棋
         for i in range(py-1,-2,-1):
             if i < 0: 
                 par['block'] += 1; break #超出棋盤，加block
@@ -50,7 +50,7 @@ def scorePoint(b, px: int, py: int, player: int, direction = None) -> int:
 
     if (not direction) or direction == 0: 
         reset()
-        # 橫排向右是否有棋
+        # 直行向上是否有棋
         for i in range(px+1,17):  # since px <= 15 
             if i >= size:
                 par['block'] += 1; break #超出棋盤，加block
@@ -62,7 +62,7 @@ def scorePoint(b, px: int, py: int, player: int, direction = None) -> int:
             elif t == player:
                 par['count'] += 1           #有己方棋，加count
             else: par['block'] += 1; break  #有對手棋，加block
-         #橫排向左是否有棋
+         #直行向下是否有棋
         for i in range(px-1,-2,-1):
             if i < 0: 
                 par['block'] += 1; break #超出棋盤，加block
@@ -83,7 +83,7 @@ def scorePoint(b, px: int, py: int, player: int, direction = None) -> int:
 
     if (not direction) or direction == 2:
         reset()
-        #右上是否有棋
+        #右下是否有棋
         for i in range(1,):   #unfinished
             if px+i >= size or py+i >= size:
                 par['block'] += 1; break
@@ -96,7 +96,7 @@ def scorePoint(b, px: int, py: int, player: int, direction = None) -> int:
             if t == player:
                 par['count'] += 1; continue
             else: par['block'] += 1; break
-        #左下是否有棋
+        #左上是否有棋
         for i in range(1,):
             if px-i < 0 or py-i < 0:
                 par['block'] += 1; break
@@ -119,7 +119,7 @@ def scorePoint(b, px: int, py: int, player: int, direction = None) -> int:
 
     if  (not direction) or direction == 3:
         reset()
-        #右下是否有棋
+        #右上是否有棋
         for i in range(1,):
             if px+i < 0 or py-i < 0 or px+i >= size or py-i >= size:
                 par['block'] += 1; break
@@ -132,7 +132,7 @@ def scorePoint(b, px: int, py: int, player: int, direction = None) -> int:
             if t == player:
                 par['count'] += 1; continue
             else: par['block'] += 1; break
-        #左上是否有棋
+        #左下是否有棋
         for i in range(1,):
             if px-i < 0 or py+i < 0 or px-i >= size or py+i >= size:
                 par['block'] += 1; break
@@ -153,7 +153,7 @@ def scorePoint(b, px: int, py: int, player: int, direction = None) -> int:
         b.scoreCache[player][3][px][py] = countToScore(par['count'], par['block'], par['empty'])
     result += b.scoreCache[player][3][px][py]
     return result
-
+#為每一種棋型評分
 def countToScore(count: int, block: int, empty: int = 0) -> int:
     if empty <= 0:
         if count >= 5: return s.five #沒空格有五顆，連五
@@ -180,8 +180,9 @@ def countToScore(count: int, block: int, empty: int = 0) -> int:
             elif count == 5: return s.blocked_four
     elif empty == 2 or empty == count - 2:   #倒數第二子前方有空格
         if count >= 7: return s.five       # 5 + blank + 2
-        elif block == 0:
-            if count == 3: return s.three
+        elif block == 0:                   # 評分需要修正
+            if count == 3: return s.blocked_three
+            elif count == 4: return s.three
             elif count == 5: return s.blocked_four
             elif count == 6: return s.four
         elif block == 1:

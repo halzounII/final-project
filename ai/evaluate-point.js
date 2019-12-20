@@ -323,13 +323,13 @@ var countToScore = function(count, block, empty) {
     if(block === 0) {
       switch(count) {
         case 3: return score.THREE
-        case 4: 
+        case 4:  //?
         case 5: return score.BLOCKED_FOUR
         case 6: return score.FOUR
       }
     }
 
-    if(block === 1) {
+    if(block === 1) { // strange scores
       switch(count) {
         case 3: return score.BLOCKED_THREE
         case 4: return score.BLOCKED_FOUR

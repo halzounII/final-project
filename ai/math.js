@@ -20,7 +20,7 @@ var littleOrEqualThan = function(a, b) {
   return equal(a, b) || littleThan(a, b)
 }
 
-var containPoint = function (arrays, p) {
+var containPoint = function (arrays, p) { //used in opening.js
   for (var i=0;i<arrays.length;i++) {
     var a = arrays[i]
     if (a[0] === p[0] && a[1] === p[1]) return true
@@ -28,7 +28,7 @@ var containPoint = function (arrays, p) {
   return false
 }
 
-var pointEqual = function (a, b) {
+var pointEqual = function (a, b) { //used in opening.js
   return a[0] === b[0] && a[1] === b[1]
 }
 

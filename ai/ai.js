@@ -1,4 +1,4 @@
-import m from "./negamax.js"
+import m from "./negamax.js"  // m = deepALl
 import R from "./role.js"
 import zobrist from "./zobrist.js"
 import config from "./config.js"

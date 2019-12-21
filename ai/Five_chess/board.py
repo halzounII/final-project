@@ -9,7 +9,7 @@ from zobrist import z
 import config
 # ToDo:
 #   1. add starTo to board
-#   2. modify place
+#   2. modify place - done
 def matrix(size: int) -> list:
     return [[0 for i in range(size)] for j in range(size)]
 
@@ -32,12 +32,15 @@ def starTO (point: tuple, points: list) -> bool:
 class playersScore:        # new class
     def __init__(self, i=0, j=0) -> dict:
         self.pos = [i,j]
-        self.score = 0
-    def __lt__(self, other):
+        self.score: int    #該位置的最大可能得分
+        self.scoreCom: int #AI在該位置的得分
+        self.scoreHum: int #人類在該位置的得分
+        self.player: int   
+    def __lt__(self, other = playersScore()):
         return abs(self.score) < abs(other.score)    # used in vcx.py (result.sort())
         
 class Board:
-    def __init__(self, size: int) -> None:
+    def __init__(self, size: int = 15) -> None:
         self.evaluateCache = {}   # redundant?
         self.currentSteps = []
         self.allSteps = []   # all chess pieces put by both sides
@@ -58,28 +61,29 @@ class Board:
 
     def __str__(self):
         if self.size >= 0:
-            string = ''
+            table = ''
             for i in range(self.size):
-                string += ', '.join(self.board[i]) + '\n'
-            return string
-
-    def hasNeighbor(self, x: int, y: int, distance: int, count: int) -> bool: # in line 481
+                table += ', '.join(self.board[i]) + '\n'
+            return table
+    #檢查在以該格為中心，邊長 = 2distance + 1 的矩形內是否有至少 count 個棋子
+    def hasNeighbor(self, x: int, y: int, distance: int = 1, count: int = 1) -> bool:
         for i in range(x-distance, x+distance + 1):
-            if i < 0 or i > self.size: continue
+            if i < 0 or i >= self.size: continue
             for j in range( y-distance, y+distance + 1):
-                if j < 0 or j > self.size: continue
-                elif i == x and j == y : continue
+                if j < 0 or j >= self.size: continue
+                elif (i, j) == (x, y): continue
                 elif self.board != P.empty:
                     count -= 1
                     if count <= 0 : return True
         return False
 
-     # score for a certain loc for a certain player
+    # score for a certain loc for a certain player
     def initScore(self) -> None:                      #初始化每一格的分數  
         for i in range(self.size):
             for j in range(self.size):
                 if self.board[i][j] == P.empty:   
-                    if self.hasNeighbor(i, j, 2, 2):     #有鄰居的空格，計算在該格落子後可已獲得的分數
+                    if self.hasNeighbor(i, j, 2, 2):  
+                    #5*5內有2顆棋子以上的空格，計算在該格落子後可得的分數
                         self.comScore[i][j] = scorePoint(self.board, i, j, P.com)
                         self.humScore[i][j] = scorePoint(self.board, i, j ,P.hum)
                 elif self.board[i][j] == P.com:
@@ -104,41 +108,41 @@ class Board:
         pass # optimization(optional)
         for i in range(-radius, radius+1):
             #橫排更新
-            if place[1] + i < 0: continue     #超出邊界但才剛開始遞迴，跳過
-            if place[1] + i >= self.size : break  #超出邊界，跳出
-            update(place[0] + i, place[1] + i, 0)
+            if place.pos[1] + i < 0: continue     #超出邊界但才剛開始遞迴，跳過
+            if place.pos[1] + i >= self.size : break  #超出邊界，跳出
+            update(place.pos[0] + i, place.pos[1] + i, 0)
             #直行更新
         for i in range(-radius, radius+1):
-            if place[0] + i < 0: continue
-            if place[0] + i >= self.size: break
-            update(place[0] + i, place[1] + i, 1)
+            if place.pos[0] + i < 0: continue
+            if place.pos[0] + i >= self.size: break
+            update(place.pos[0] + i, place.pos[1] + i, 1)
             #右下左上更新
         for i in range(-radius, radius+1):
-            if place[0] + i < 0 or place[1] + i < 0: continue
-            if place[0] + i >= self.size or place[1] + 1 >= self.size: break
-            update(place[0] + i, place[1] + i, 2)
+            if place.pos[0] + i < 0 or place.pos[1] + i < 0: continue
+            if place.pos[0] + i >= self.size or place.pos[1] + 1 >= self.size: break
+            update(place.pos[0] + i, place.pos[1] + i, 2)
             #右上左下更新
         for i in range(-radius, radius+1):
-            if place[0] + i < 0 or place [1] - i > self.size: continue
-            if place[0] + i >= self.size or place[1] - i < 0: break # or continue?-solved
-            update(place[0] + i, place[1] + i, 3)
+            if place.pos[0] + i < 0 or place [1] - i > self.size: continue
+            if place.pos[0] + i >= self.size or place.pos[1] - i < 0: break # or continue?-solved
+            update(place.pos[0] + i, place.pos[1] + i, 3)
 
     
-    def put(self, place: tuple, player: int) -> None:
+    def put(self, player: int, place = playersScore()) -> None:
         place.player = player       #place has attribute "player"?
         #if config.debug: print(f'put[{place}] {player}')
-        self.board[place[0]][place[1]] = player
-        self.z.go(place[0], place[1], player)
+        self.board[place.pos[0]][place.pos[1]] = player
+        self.z.go(place.pos[0], place.pos[1], player)
         self.updateScore(place)
         self.allSteps.append(place)   #把此步加到所有步數裡
         self.currentSteps.append(place)
         self.stepsTail = []  # ??
         self.count += 1
 
-    def remove(self, place) -> None:
-        self.z.go(place[0], place[1], self.board[place[0]][place[1]])
+    def remove(self, place = playersScore()) -> None:
+        self.z.go(place.pos[0], place.pos[1], self.board[place.pos[0]][place.pos[1]])
         # debug
-        self.board[place[0]][place[1]] = P.empty
+        self.board[place.pos[0]][place.pos[1]] = P.empty
         self.updateScore(place)
         self.allSteps.pop()
         self.currentSteps.pop()
@@ -199,49 +203,51 @@ class Board:
             for j in range(self.size):
                 if self.board[i][j] == P.empty:
                     if len(self.allSteps) < 6:
+                     #總手數小於6(雙方皆不可能成三)，若周圍沒棋就跳過
                         if not self.hasNeighbor(i, j, 1, 1): continue #??
                     elif not self.hasNeighbor(i, j, 2, 2): continue   #??
-                    
+                   #5*5內沒棋也跳過(不可能有連棋)
                     place = playersScore(i, j)    # replace p of place
                     place.scoreHum = self.humScore[i][j]
                     place.scoreCom = self.comScore[i][j]
                     place.score = max(place.scoreCom, place.scoreHum)
+                    #只看活三以上
                     if onlyThrees and place.score < s.three: continue
                     place.player = player
                     pass # starspread
-                    if place.scoreCom >= s.five: fives.append(place['pos'])
-                    elif place.scoreHum >= s.five: fives.append(place['pos'])
-                    elif place.scoreCom >= s.four: com_fours.append(place['pos'])
-                    elif place.scoreHum >= s.four: hum_fours.append(place['pos'])
-                    elif place.scoreCom >= s.blocked_four: com_blockedfours.append(place['pos'])
-                    elif place.scoreHum >= s.blocked_four: hum_blockedfours.append(place['pos'])
-                    elif place.scoreCom >= 2*s.three: com_doublethrees.append(place['pos'])
-                    elif place.scoreHum >= 2*s.three: hum_doublethrees.append(place['pos'])
-                    elif place.scoreCom >= s.three: com_threes.append(place['pos'])
-                    elif place.scoreHum >= s.three: hum_threes.append(place['pos'])
-                    elif place.scoreCom >= s.two: com_twos.appendleft(place['pos'])
-                    elif place.scoreHum >= s.two: hum_twos.appendleft(place['pos'])
-                    else: neighbors.append(place)
-
-        if len(fives): return fives
-        elif player == P.com and len(com_fours): return com_fours
-        elif player == P.hum and len(hum_fours): return hum_fours
-        elif player == P.com and len(hum_fours) and len(com_blockedfours): return hum_fours
-        elif player == P.hum and len(com_fours) and len(hum_blockedfours): return com_fours
-        
+                    if place.scoreCom >= s.five: fives.append(place)
+                    elif place.scoreHum >= s.five: fives.append(place)
+                    elif place.scoreCom >= s.four: com_fours.append(place)
+                    elif place.scoreHum >= s.four: hum_fours.append(place)
+                    elif place.scoreCom >= s.blocked_four: com_blockedfours.append(place)
+                    elif place.scoreHum >= s.blocked_four: hum_blockedfours.append(place)
+                    elif place.scoreCom >= 2*s.three: com_doublethrees.append(place)
+                    elif place.scoreHum >= 2*s.three: hum_doublethrees.append(place)
+                    elif place.scoreCom >= s.three: com_threes.append(place)
+                    elif place.scoreHum >= s.three: hum_threes.append(place)
+                    elif place.scoreCom >= s.two: com_twos.appendleft(place)
+                    elif place.scoreHum >= s.two: hum_twos.appendleft(place)
+                    else: neighbors.append(place) # 沒有連棋，而周圍有對手棋 
+                    
+        if len(fives): return fives   #有連五，先返回
+        elif player == P.com and len(com_fours): return com_fours  #自己可活四就先活四
+        elif player == P.hum and len(hum_fours): return hum_fours  #否則防守對方活四
+        elif player == P.com and len(hum_fours) and not len(com_blockedfours): return hum_fours
+        elif player == P.hum and len(com_fours) and not len(hum_blockedfours): return com_fours
+        #對面有活四，自己有死四
         fours = com_fours + hum_fours if player == P.com else hum_fours + com_fours
         blockedfours = com_blockedfours + hum_blockedfours if player == P.hum else hum_blockedfours + com_blockedfours
-        if len(fours): return fours + blockedfours
-
-        if player == P.com:
+        if len(fours): return fours + blockedfours 
+        #自己的活四點先排前面(這裡理應沒有)，再排對方活四點，再排自己與對方死四點
+        if player == P.com:  #先雙三，再死四，再活三
             result:list = com_doublethrees + hum_doublethrees + com_blockedfours + hum_blockedfours + com_threes + hum_threes
         elif player == P.hum: 
             result:list = hum_doublethrees + com_doublethrees + hum_blockedfours + com_blockedfours + hum_threes + com_threes           
         if len(com_doublethrees) or len(hum_doublethrees): return result
-        elif onlyThrees: return result
-
+        elif onlyThrees: return result  #不考慮活二死二的情形
         twos = com_twos + hum_twos if player == P.com else hum_twos + com_twos
         result.append(twos if len(twos) else neighbors)
+        #分數低可只計到countLimit
         if len(result) > config.countLimit: return result[:config.countLimit]
-        return result
-board = Board(15)
+        return result  
+board = Board()

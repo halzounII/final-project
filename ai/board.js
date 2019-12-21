@@ -451,7 +451,7 @@ class Board {
 
     // result.sort(function(a, b) { return b.score - a.score })
 
-    //双三很特殊，因为能形成双三的不一定比一个活三强
+    //双三很特殊，因为能形成双三的不一定比一个活三强(?)
     if(comtwothrees.length || humtwothrees.length) {
       return result
     }

@@ -1,21 +1,20 @@
 from score import players as P
-from board import Board
-import config 
+from board import board, playersScore
+import config
 from negamax import deepAll
-board = Board(15)
+from opening import match as opening
 class AI:
     #def start(self): # omit 26 kinds of openings
-        #board = Board(15)
         #return board
-    def begin(self):
-        if len(board.allSteps) > 1: p = opening(board)
-        else: p = deepAll(None, config.searchDeep)
+    def begin(self):  #電腦下棋，開始搜索
+        if 1 <= len(board.allSteps) <= 2: p = opening(board) #用開局庫
+        else: p = deepAll(None, config.searchDeep)  #遞迴
         board.put(p, P.com)
         return p
-    def turn(self, x, y):
-        self.Set(x, y, P.hum)
-        return self.begin
-    def Set(self, x, y, r) -> None: 
-        board.put((x,y), r)
+
+    def turn(self, x, y): #下子並計算
+        board.put(playersScore(x, y), P.hum)
+        return self.begin()
+    #delete set
     def forward(self): 
         board.forward()

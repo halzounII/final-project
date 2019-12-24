@@ -1,9 +1,9 @@
+import config
+from zobrist import z
+from board import board, playersScore
 from score import scores as s
 from score import players as P
-import config
-from board import board, playersScore
 from collections import deque
-from zobrist import z
 from math import floor
 from random import random
 

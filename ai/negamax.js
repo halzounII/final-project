@@ -189,7 +189,7 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
     // 这里不要直接返回原来的值，因为这样上一层会以为就是这个分，实际上这个节点直接剪掉就好了，根本不用考虑，也就是直接给一个很大的值让他被减掉
     // 这样会导致一些差不多的节点都被剪掉，但是没关系，不影响棋力
     // 一定要注意，这里必须是 greatThan 即 明显大于，而不是 greatOrEqualThan 不然会出现很多差不多的有用分支被剪掉，会出现致命错误
-    if(math.greatOrEqualThan(v.score, beta)) {
+    if(math.greatThan(v.score, beta)) {
       config.debug && console.log('AB Cut [' + p[0] + ',' + p[1] + ']' + v.score + ' >= ' + beta + '')
       ABcut ++
       v.score = MAX-1 // 被剪枝的，直接用一个极大值来记录，但是注意必须比MAX小
@@ -245,7 +245,7 @@ var deeping = function(candidates, role, deep) {
   // 美化一下
   candidates = candidates.map(function (d) {
     var r = [d[0], d[1]]
-    r.score = d.v.score
+    r.score = d.v.score 
     r.step = d.v.step
     r.steps = d.v.steps
     if (d.v.vct) r.vct = d.v.vct

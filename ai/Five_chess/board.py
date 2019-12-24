@@ -10,7 +10,8 @@ import config
 # ToDo:
 #   1. add starTo to board
 #   2. modify place - done
-def matrix(size: int) -> list:
+#   3. self.v initialization
+def matrix(size: int = 15) -> list:
     return [[0 for i in range(size)] for j in range(size)]
 
 def fixScore(Type: int) -> int:  # prevent b
@@ -36,23 +37,24 @@ class playersScore:        # new class
         self.scoreCom: int #AI在該位置的得分
         self.scoreHum: int #人類在該位置的得分
         self.player: int   
+        self.v = dict()    #used in negamax.negamax
     def __lt__(self, other = playersScore()):
         return abs(self.score) < abs(other.score)    # used in vcx.py (result.sort())
         
 class Board:
     def __init__(self, size: int = 15) -> None:
         self.evaluateCache = {}   # redundant?
-        self.currentSteps = []
-        self.allSteps = []   # all chess pieces put by both sides
+        self.currentSteps = []    #元素是playersScore()
+        self.allSteps = []   # all chess pieces put by both sides, 元素是playersScore()
         self.stepsTail = []  #??
         self._last = [False,False]
         self.count = 0       #手數
         self.z = z
         if len(size):       # accept only integer, not lists
-            self.board = matrix(size)             #目前棋盤的落子狀況          
+            self.board = matrix(size)             #目前棋盤的落子狀況;元素是score.players()
             self.size = size                      #棋盤大小
-            self.comScore = matrix(size)          #AI在棋盤某一位置的(可能)得分
-            self.humScore = matrix(size)          #人類在棋盤某一位置的(可能)得分
+            self.comScore = matrix(size)          #AI在棋盤某一位置的(可能)得分;元素是數字
+            self.humScore = matrix(size)          #人類在棋盤某一位置的(可能)得分;元素是數字
             self.scoreCache = [                   # used in evalueate-point.py                 
                 [],   # placeholder
                 [matrix(size) for i in range(4)],  # for player 1 
@@ -132,7 +134,7 @@ class Board:
         place.player = player       #place has attribute "player"?
         #if config.debug: print(f'put[{place}] {player}')
         self.board[place.pos[0]][place.pos[1]] = player
-        self.z.go(place.pos[0], place.pos[1], player)
+        self.z.go(place.pos[0], place.pos[1], player) #執行zobrist運算，產生棋型代碼
         self.updateScore(place)
         self.allSteps.append(place)   #把此步加到所有步數裡
         self.currentSteps.append(place)
@@ -166,6 +168,7 @@ class Board:
                     self.humMaxScore += fixScore(self.humScore[i][j])
         return (1 if player == P.com else -1)*(self.comMaxScore - self.humMaxScore)
     # starspread: 米字計算
+    # generator: 回傳所有可能的應手，以五->三排列
     def generator(self, player: int, onlyThrees, starSpread) -> list:
         if self.count <= 0: return [7,7] #棋局還沒開始
         fives = []

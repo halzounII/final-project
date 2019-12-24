@@ -8,7 +8,7 @@ Created on Tue Dec 17 17:36:16 2019
 import pygame as pg
 from pygame.locals import *
 
-BACKGROUND = 'ramin.jpg'                       # 棋盤圖 from github
+BACKGROUND = r'D:\final project\final-project\ai\Five_chess\ramin.jpg'                       # 棋盤圖 from github
 BOARD_SIZE = (820, 820)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -107,8 +107,8 @@ class Board(object):                           # 棋盤
             pg.draw.rect(screen, RED, preview, 1)
             pg.display.update()
             pg.time.wait(30)
-            #blit_coords = (x , y )
-            #area_rect = pg.Rect(blit_coords, (20, 20))
+            blit_coords = (x , y )
+            area_rect = pg.Rect(blit_coords, (20, 20))
             screen.blit(background, blit_coords, area_rect)
             pg.display.update()
 
@@ -156,7 +156,7 @@ if __name__ == '__main__':
     pg.init()
     pg.display.set_caption('Goban')
     screen = pg.display.set_mode(BOARD_SIZE, 0, 32)
-    background = pg.image.load(BACKGROUND).convert()
+    background = pg.image.load(BACKGROUND)
     board = Board()
     GUI()
     

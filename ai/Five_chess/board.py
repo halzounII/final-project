@@ -38,7 +38,7 @@ class playersScore:        # new class
         self.scoreHum: int #人類在該位置的得分
         self.player: int   
         self.v = dict()    #used in negamax.negamax
-    def __lt__(self, other = playersScore()):
+    def __lt__(self, other):
         return abs(self.score) < abs(other.score)    # used in vcx.py (result.sort())
         
 class Board:
@@ -50,7 +50,7 @@ class Board:
         self._last = [False,False]
         self.count = 0       #手數
         self.z = z
-        if len(size):       # accept only integer, not lists
+        if size:       # accept only integer, not lists
             self.board = matrix(size)             #目前棋盤的落子狀況;元素是score.players()
             self.size = size                      #棋盤大小
             self.comScore = matrix(size)          #AI在棋盤某一位置的(可能)得分;元素是數字
@@ -86,13 +86,13 @@ class Board:
                 if self.board[i][j] == P.empty:   
                     if self.hasNeighbor(i, j, 2, 2):  
                     #5*5內有2顆棋子以上的空格，計算在該格落子後可得的分數
-                        self.comScore[i][j] = scorePoint(self.board, i, j, P.com)
-                        self.humScore[i][j] = scorePoint(self.board, i, j ,P.hum)
+                        self.comScore[i][j] = scorePoint(self, i, j, P.com)
+                        self.humScore[i][j] = scorePoint(self, i, j ,P.hum)
                 elif self.board[i][j] == P.com:
-                    self.comScore[i][j] = scorePoint(self.board, i ,j, P.com)
+                    self.comScore[i][j] = scorePoint(self, i ,j, P.com)
                     self.humScore[i][j] = 0             #該格為電腦棋，則玩家得分0
                 elif self.board[i][j] == P.hum:
-                    self.humScore[i][j] = scorePoint(self.board, i ,j, P.hum)
+                    self.humScore[i][j] = scorePoint(self, i ,j, P.hum)
                     self.comScore[i][j] = 0
 
     def updateScore(self, place = playersScore()) -> None:     # p => place # 米字形更新分數

@@ -6,5 +6,4 @@ cache = True
 spreadLimit = 1
 opening = True
 starSpread = True
-opening = True
 vcxDeep = 5

@@ -38,7 +38,7 @@ class playersScore:        # new class
         self.scoreHum: int #人類在該位置的得分
         self.player: int   
         self.v = dict()    #used in negamax.negamax
-    def __lt__(self, other = playersScore()):
+    def __lt__(self, other):
         return abs(self.score) < abs(other.score)    # used in vcx.py (result.sort())
         
 class Board:
@@ -50,7 +50,7 @@ class Board:
         self._last = [False,False]
         self.count = 0       #手數
         self.z = z
-        if len(size):       # accept only integer, not lists
+        if size:       # accept only integer, not lists
             self.board = matrix(size)             #目前棋盤的落子狀況;元素是score.players()
             self.size = size                      #棋盤大小
             self.comScore = matrix(size)          #AI在棋盤某一位置的(可能)得分;元素是數字

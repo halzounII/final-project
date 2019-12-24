@@ -22,3 +22,6 @@ class AI:
     #delete set
     def forward(self): 
         board.forward()
+        
+test = AI()
+print(test.begin)

@@ -4,7 +4,7 @@ from score import players as P
 # TO DO:
     # 1. dir = 2 or 3 的 range() 參數
 def scorePoint(b, px: int, py: int, player: int, direction = None) -> int:
-    board:list = b.board
+    board = b
     par = dict(block = 0, empty = 0, count = 0, secondCount = 0)
     size = board.size
     result = 0

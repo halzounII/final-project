@@ -11,9 +11,12 @@ class AI:
             return {'board': board, 'name': board.board.name}
         return {'board': board}
     def begin(self):  #電腦下棋，開始搜索
-        if len(board.allSteps) == 2: p = opening(board) #用開局庫
-        else: p = deepAll(None, config.searchDeep)  #遞迴
-        board.put(p, P.com)
+        if board.allSteps == []: p = playersScore(7,7) 
+        elif len(board.allSteps) == 2: 
+            x, y = opening(board)[0], opening(board)[1] #用開局庫
+            p = playersScore(x, y)
+        else: p = deepAll(deep = config.searchDeep)  #遞迴
+        board.put(P.com, p)
         return p
 
     def turn(self, x, y): #下子並計算
@@ -22,3 +25,19 @@ class AI:
     #delete set
     def forward(self): 
         board.forward()
+        
+ai = AI()
+ai.begin()
+print(board)
+while True:
+    x,y = int(input('x:')), int(input('y:'))
+    board.put(P.hum, playersScore(x, y))
+    ai.begin()
+    print(board)
+    table, table2 = '', ''
+    for i in range(15):
+        table += ''.join(str(board.humScore[i])) + '\n'
+        table2 += ''.join(str(board.comScore[i])) + '\n'
+    #print(table)
+    #print(table2)
+    #print(board.allSteps)

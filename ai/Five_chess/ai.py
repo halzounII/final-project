@@ -12,9 +12,9 @@ class AI:
         return {'board': board}
     def begin(self):  #電腦下棋，開始搜索
         if board.allSteps == []: p = playersScore(7,7) 
-        elif len(board.allSteps) == 2: 
-            x, y = opening(board)[0], opening(board)[1] #用開局庫
-            p = playersScore(x, y)
+        #elif len(board.allSteps) == 2: 
+            #x, y = opening(board)[0], opening(board)[1] #用開局庫
+            #p = playersScore(x, y)
         else: p = deepAll(deep = config.searchDeep)  #遞迴
         board.put(P.com, p)
         return p
@@ -25,7 +25,7 @@ class AI:
     #delete set
     def forward(self): 
         board.forward()
-        
+
 ai = AI()
 ai.begin()
 print(board)

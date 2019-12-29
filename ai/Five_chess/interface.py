@@ -101,7 +101,7 @@ class Board(object):                           # 棋盤
         x = int(round(((pos[0] - 5) / 40.0), 0))*40-5
         y = int(round(((pos[1] - 5) / 40.0), 0))*40-5
         stone = board.search(point=(x, y))
-        print(stone)
+        #print(stone)
         if not stone:
             preview = pg.Rect([x, y, 20, 20])           
             pg.draw.rect(screen, RED, preview, 1)
@@ -143,7 +143,7 @@ def GUI():
                     if stone:
                         stone.remove()
                     else:
-                        print(x, y)
+                        #print(x, y)
                         added_stone = Stone(board, (x, y), board.turn())
                         added_stone.draw()
                     #board.update_liberties(added_stone)

@@ -33,10 +33,10 @@ def starTO (point: tuple, points: list) -> bool:
 class playersScore:        # new class
     def __init__(self, i=0, j=0) -> dict:
         self.pos = [i,j]
-        self.score: int    #該位置的最大可能得分
-        self.scoreCom: int #AI在該位置的得分
-        self.scoreHum: int #人類在該位置的得分
-        self.player: int   
+        self.score: int = 0   #該位置的最大可能得分
+        self.scoreCom: int = 0 #AI在該位置的得分
+        self.scoreHum: int = 0 #人類在該位置的得分
+        self.player: int = 0  
         self.v = dict()    #used in negamax.negamax
     def __lt__(self, other):
         return abs(self.score) < abs(other.score)    # used in vcx.py (result.sort())
@@ -45,7 +45,7 @@ class Board:
     def __init__(self, size: int = 15) -> None:
         self.evaluateCache = {}   # redundant?
         self.currentSteps = []    #元素是playersScore()
-        self.allSteps = []   # all chess pieces put by both sides, 元素是playersScore()
+        self.allSteps = []   # all chess pieces put by both sides, 元素是playersScore(), used in ai.py
         self.stepsTail = []  #??
         self._last = [False,False]
         self.count = 0       #手數
@@ -65,7 +65,7 @@ class Board:
         if self.size >= 0:
             table = ''
             for i in range(self.size):
-                table += ', '.join(self.board[i]) + '\n'
+                table += ''.join(str(self.board[i])) + '\n'
             return table
     #檢查在以該格為中心，邊長 = 2distance + 1 的矩形內是否有至少 count 個棋子
     def hasNeighbor(self, x: int, y: int, distance: int = 1, count: int = 1) -> bool:
@@ -99,11 +99,11 @@ class Board:
         radius = 4                     #更新的距離半徑(遠於五格者不受影響)
         def update(x, y, direction):
             player = self.board[x][y]
-            if player != P.com:        #??
+            if player != P.reverse(P.com):        #??
                 self.comScore[x][y] += scorePoint(self, x, y, P.com, direction)
                 pass #statistics
             else: self.comScore[x][y] = 0
-            if player != P.hum:       #??
+            if player != P.reverse(P.hum):       #??
                 self.humScore[x][y] += scorePoint(self, x, y, P.hum, direction)
                 pass #statistics
             else: self.humScore[x][y] = 0
@@ -112,26 +112,26 @@ class Board:
             #橫排更新
             if place.pos[1] + i < 0: continue     #超出邊界但才剛開始遞迴，跳過
             if place.pos[1] + i >= self.size : break  #超出邊界，跳出
-            update(place.pos[0] + i, place.pos[1] + i, 0)
+            update(place.pos[0], place.pos[1] + i, 0)
             #直行更新
         for i in range(-radius, radius+1):
             if place.pos[0] + i < 0: continue
             if place.pos[0] + i >= self.size: break
-            update(place.pos[0] + i, place.pos[1] + i, 1)
+            update(place.pos[0] + i, place.pos[1], 1)
             #右下左上更新
         for i in range(-radius, radius+1):
             if place.pos[0] + i < 0 or place.pos[1] + i < 0: continue
-            if place.pos[0] + i >= self.size or place.pos[1] + 1 >= self.size: break
+            if place.pos[0] + i >= self.size or place.pos[1] + i >= self.size: break
             update(place.pos[0] + i, place.pos[1] + i, 2)
             #右上左下更新
         for i in range(-radius, radius+1):
-            if place.pos[0] + i < 0 or place [1] - i > self.size: continue
+            if place.pos[0] + i < 0 or place.pos[1] - i >= self.size: continue
             if place.pos[0] + i >= self.size or place.pos[1] - i < 0: break # or continue?-solved
-            update(place.pos[0] + i, place.pos[1] + i, 3)
+            update(place.pos[0] + i, place.pos[1] - i, 3)
 
     
     def put(self, player: int, place = playersScore()) -> None:
-        place.player = player       #place has attribute "player"?
+        #self.board[place.pos[0]][place.pos[1]] = player       #place has attribute "player"?
         #if config.debug: print(f'put[{place}] {player}')
         self.board[place.pos[0]][place.pos[1]] = player
         self.z.go(place.pos[0], place.pos[1], player) #執行zobrist運算，產生棋型代碼
@@ -170,6 +170,7 @@ class Board:
     # starspread: 米字計算
     # generator: 回傳所有可能的應手，以五->三排列
     def generator(self, player: int, onlyThrees, starSpread) -> list:
+        #print('player is ' + str(player)) --debug
         if self.count <= 0: return [7,7] #棋局還沒開始
         fives = []
         com_fours = []; hum_fours = []
@@ -198,10 +199,11 @@ class Board:
                     attackPoints.append(place); break  #表示己方該子在進攻
                 j -= 2
             #若沒有進攻/防守點，則設為首步
-            if not len(attackPoints): 
-                attackPoints.append(self.currentSteps[0] if self.currentSteps[0].player == player else self.currentSteps[1])
-            if not len(defendPoints):
-                defendPoints.append(self.currentSteps[0] if self.currentSteps[0].player == P.reverse(player) else self.currentSteps[1])
+            if len(self.currentSteps) >= 2: #needs debug    
+                if not len(attackPoints): 
+                    attackPoints.append(self.currentSteps[0] if self.currentSteps[0].player == player else self.currentSteps[1])
+                if not len(defendPoints):
+                    defendPoints.append(self.currentSteps[0] if self.currentSteps[0].player == P.reverse(player) else self.currentSteps[1])
         for i in range(self.size):
             for j in range(self.size):
                 if self.board[i][j] == P.empty:
@@ -243,13 +245,13 @@ class Board:
         if len(fours): return fours + blockedfours 
         #自己的活四點先排前面(這裡理應沒有)，再排對方活四點，再排自己與對方死四點
         if player == P.com:  #先雙三，再死四，再活三
-            result:list = com_doublethrees + hum_doublethrees + com_blockedfours + hum_blockedfours + com_threes + hum_threes
+            result = com_doublethrees + hum_doublethrees + com_blockedfours + hum_blockedfours + com_threes + hum_threes
         elif player == P.hum: 
-            result:list = hum_doublethrees + com_doublethrees + hum_blockedfours + com_blockedfours + hum_threes + com_threes           
+            result = hum_doublethrees + com_doublethrees + hum_blockedfours + com_blockedfours + hum_threes + com_threes           
         if len(com_doublethrees) or len(hum_doublethrees): return result
         elif onlyThrees: return result  #不考慮活二死二的情形
         twos = com_twos + hum_twos if player == P.com else hum_twos + com_twos
-        result.append(twos if len(twos) else neighbors)
+        result += twos if len(twos) else neighbors
         #分數低可只計到countLimit
         if len(result) > config.countLimit: return result[:config.countLimit]
         return result  

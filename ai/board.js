@@ -189,7 +189,7 @@ class Board {
     this.updateScore(p)
     this.allSteps.push(p)
     this.currentSteps.push(p)
-    this.stepsTail = []   //??
+    this.stepsTail = [] 
     this.count ++
   }
 

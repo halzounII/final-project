@@ -44,9 +44,9 @@ class playersScore:        # new class
 class Board:
     def __init__(self, size: int = 15) -> None:
         self.evaluateCache = {}   # redundant?
-        self.currentSteps = []    #元素是playersScore()
+        self.currentSteps = []    #當前的那一步，元素是playersScore()
         self.allSteps = []   # all chess pieces put by both sides, 元素是playersScore(), used in ai.py
-        self.stepsTail = []  #??
+        self.stepsTail = []  #backward(悔棋)後保留的先前棋步
         self._last = [False,False]
         self.count = 0       #手數
         self.z = z
@@ -131,32 +131,38 @@ class Board:
 
     
     def put(self, player: int, place = playersScore()) -> None:
-        #self.board[place.pos[0]][place.pos[1]] = player       #place has attribute "player"?
+        if player == 0: player = 2 #遇到bug
         #if config.debug: print(f'put[{place}] {player}')
         self.board[place.pos[0]][place.pos[1]] = player
         self.z.go(place.pos[0], place.pos[1], player) #執行zobrist運算，產生棋型代碼
-        self.updateScore(place)
         self.allSteps.append(place)   #把此步加到所有步數裡
         self.currentSteps.append(place)
-        self.stepsTail = []  # ??
+        #self.stepsTail = []  #棋局往另一方向發展，不再保留先前棋步
+        self.updateScore(place)
         self.count += 1
+        print(f'put {place.pos},{player}, {self.currentSteps}')
 
     def remove(self, place = playersScore()) -> None:
         self.z.go(place.pos[0], place.pos[1], self.board[place.pos[0]][place.pos[1]])
         # debug
-        self.board[place.pos[0]][place.pos[1]] = P.empty
         self.updateScore(place)
         self.allSteps.pop()
-        self.currentSteps.pop()
+        if self.currentSteps != []: self.currentSteps.pop()
+        self.board[place.pos[0]][place.pos[1]] = P.empty
         self.count -= 1
 
-    # omit backward
-    def forward(self): #??
+    def backward(self):
+        if len(self.allSteps) < 2: return
+        for i in range(2):
+            s = self.allSteps[-1]
+            self.stepsTail.append(s)
+            self.remove(s)
+
+    def forward(self):
         if len(self.stepsTail) < 2: return
         for i in range(2):
             s = self.stepsTail.pop()
-            self.put(s, s.player)
-            self.i = i
+            self.put(s.player, s)
 
     def evaluate(self, player: int) -> int:  # 當前各自修正後的分數差距
         self.comMaxScore, self.humMaxScore = 0, 0

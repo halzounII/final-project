@@ -4,7 +4,7 @@ import config
 from board import board, playersScore
 from time import perf_counter
 # ToDo:
-#   1. rearrange deeping's result
+#   1. rearrange deeping's result --done
 #   2. comprehend r function
 class var:
     MAX = s.five*10
@@ -14,27 +14,32 @@ class var:
     start_counter: float = 0
 
 def negamax(candidates, player:int, deep:int, alpha, beta) -> int:
+    if config.debug: print([i.pos for i in candidates])
     var.count, var.PVcut, var.ABcut = 0, 0, 0 #參數歸零
     board.currentSteps = []
     for i in range(len(candidates)):   #遍歷所有可能的應手
         c = candidates[i] # replace p of c, is an instance of playersScore
         board.put(player, c)
         v: dict = r(deep-1, -beta, -alpha, P.reverse(player), 1, [c], 0)
-        #print('searching ends!') -- debug
-        v['score'] *= -1   #??
+        v['score'] *= -1
         alpha = max(alpha, v['score'])
-        #print(f'alpha: {alpha}')
+        if config.debug: print(f'alpha: {alpha}')
         board.remove(c)
         c.v = v         # 該點經由後續遞迴的得出的分數
-        if perf_counter() - var.start_counter > config.timeLimit*1000: break
+        if perf_counter() - var.start_counter > config.timeLimit: 
+            print('time out!'); break
+        if config.log:
+            print(f'迭代完成, deep = {deep}')
+            # vct; vcf
     return alpha #回傳最佳解
-# 遞迴搜索(step: 總步數, steps: 所有棋步, spread: ?)
+# 遞迴搜索(step: 總步數, steps: 所有棋步, spread: 延伸搜索次數)
 def r(deep, alpha, beta, player, step: int,steps: list, spread) -> dict:
     #print(f'deep: {deep}')
     #1. 檢查此棋型是否已被搜索過 
     if config.cache:
         for i in var.Cache:
-            if i == board.z.code: 
+            if i == board.z.code:
+                if config.debug: print('cache') 
                 c = var.Cache[i] #z.code: 每個棋型的代號 
                 if c['deep'] >= deep:  #暫存結果的搜索深度大於當前深度則可用
                     return {'score': c['score'], 'steps': steps, 'step': step + c['step'],\
@@ -46,12 +51,12 @@ def r(deep, alpha, beta, player, step: int,steps: list, spread) -> dict:
     leaf = {'score':Eval, 'step':step, 'steps': steps, 'ABcut': 0} #搜索終點
     var.count += 1
     if deep < 1 or abs(Eval) >= s.five: return leaf
-    # 分數差大於s.five: 自己已經可以單獨成五(勝利)，回傳leaf
+    # 分數差大於s.five: 某方已經可以單獨成五(勝利)，回傳leaf
     #3. 列出所有可能的下一步
     best: dict = {'score': var.MIN, 'step': step, 'steps': steps, 'ABcut': 0}  #?? why score is var.MIN?
     points = board.generator(player,step > 1 if board.count > 10 else step > 3, step > 1) #雙方各下一子，開始starSpread
     if not len(points): return leaf #沒有可下的點
-    pass # debug
+    #if config.debug: print(f'A~B: {alpha} ~ {beta}')
     for i in range(len(points)):
         if perf_counter() - var.start_counter > config.timeLimit: break
         p = points[i]
@@ -59,10 +64,10 @@ def r(deep, alpha, beta, player, step: int,steps: list, spread) -> dict:
         N_deep = deep -1
         N_spread = spread #??what is spread?
         if spread < config.spreadLimit: #沖四延伸
-            if (player == P.com and p.scoreHum >= s.five)\
-                or (player == P.hum and p.scoreCom >= s.five):
+            if (player == P.com and p.scoreCom >= s.five)\
+                or (player == P.hum and p.scoreHum >= s.five): #! exchange scoreCom & scoreHum
                 N_deep += 2; spread += 1  #加兩層深度
-        N_steps = steps
+        N_steps = steps.copy()
         N_steps.append(p)
         v :dict = r(N_deep, -beta, -alpha, P.reverse(player), step+1, N_steps, N_spread)
         v['score'] *= -1
@@ -70,6 +75,7 @@ def r(deep, alpha, beta, player, step: int,steps: list, spread) -> dict:
         if v['score'] > best['score']: best = v #搜索的score比當前最佳解還好
         alpha = max(best['score'], alpha)  #alpha剪枝
         if v['score'] > beta:
+            if config.debug: print('beta pruning!')
             var.ABcut += 1
             v['score'] = var.MAX - 1 #被剪枝，用一個大值來記錄(?)
             v['ABcut'] = 1
@@ -84,10 +90,10 @@ def r(deep, alpha, beta, player, step: int,steps: list, spread) -> dict:
     
 def deeping(candidates: list, player, deep = config.searchDeep):
     var.start_counter = perf_counter()
-    var.Cache = {}  #清空暫存
+    if config.clear_cache: var.Cache = {}  #清空暫存
     for i in range(2, deep + 1, 2):  #從兩層開始逐漸加深到指定的deep
         if negamax(candidates, player, i, var.MIN , var.MAX) >= s.five: 
-            #print('win')
+            if config.debug: print('win')
             break 
         #可贏，跳出
     result = candidates[0]
@@ -103,5 +109,5 @@ def deeping(candidates: list, player, deep = config.searchDeep):
     return  result #playersScore()
 
 def deepAll(player = P.com, deep = config.searchDeep):
-    return deeping(board.generator(player, 0 , config.starSpread), player, deep)
+    return deeping(board.generator(player, config.onlyThrees, config.starSpread), player, deep)
     #0表示不開啟onlyThree模式

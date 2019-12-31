@@ -25,10 +25,16 @@ class AI:
     #delete set
     def forward(self): 
         board.forward()
+    def backward(self):
+        board.backward()
 
 def auto(x,y):
     ai = AI()
+    #if bk:
+    #    ai.backward()
+    #    return
     a = ai.begin()
+
     print(board)    
     board.put(P.hum, playersScore(x, y))
     print(board)
@@ -38,6 +44,7 @@ def auto(x,y):
         table2 += ''.join(str(board.comScore[i])) + '\n'
     # 把電腦下的座標回傳GUI
     return (a.pos)
+    
     '''
     while True:
         #x,y = int(input('x:')), int(input('y:'))
@@ -52,5 +59,8 @@ def auto(x,y):
         #print(table2)
         #print(board.allSteps)
     '''
+def bk():
+    ai = AI()
+    ai.backward()    
 if __name__ == "__main__":
     auto(8,2)

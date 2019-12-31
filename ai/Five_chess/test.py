@@ -7,7 +7,7 @@ Created on Tue Dec 17 17:36:16 2019
 
 import pygame as pg
 from pygame.locals import *
-from ai_modified import auto
+from ai_modified import auto, bk
 
 BACKGROUND = 'D:/Users/sab93/Desktop/python/final-project/ai/Five_chess/ramin.jpg'                       # 棋盤圖 from github
 BOARD_SIZE = (820, 820)
@@ -52,8 +52,10 @@ class RealBoard(object):                           # 棋盤
         """Create and initialize an empty board."""
         self.groups = {(0, 0, 0):[], (255, 255, 255):[]}
         self.next = BLACK
-        self.outline = pg.Rect(45, 45, 560, 560)   # (起始x y x長 y長  )
+        self.outline = pg.Rect(45, 45, 560, 560)   # (起始x y x長 y長 )
+        self.regret = pg.Rect(625, 45, 150 ,75)
         self.draw()
+        self.bk = False
         
     def draw(self):
         """Draw the board to the background and blit it to the screen.
@@ -64,6 +66,7 @@ class RealBoard(object):                           # 棋盤
         board.
         """
         pg.draw.rect(background, BLACK, self.outline, 3)
+        pg.draw.rect(background, BLACK, self.regret, 3)
         # Outline is inflated here for future use as a collidebox for the mouse
         self.outline.inflate_ip(20, 20)            #原地放大縮小 用處??
         for i in range(14):
@@ -161,6 +164,16 @@ def GUI():
                         if not rboard.search(point=(b+1,a+1)):   # 有時會沒下到(可能重複下) 擋活三死四時發生
                             rboard.auto_draw(b+1,a+1)                    # 電腦下
                             rboard.next = WHITE
+                if event.button == 1 and rboard.regret.collidepoint(event.pos):
+                   
+                    if rboard.groups[(255, 255, 255)] and rboard.groups[(0, 0, 0)]: 
+                        print("悔棋")
+                        bk()
+                        removed_w = Stone(rboard, (rboard.groups[(255, 255, 255)].pop()), WHITE )
+                        removed_w.remove()
+                        removed_b = Stone(rboard, (rboard.groups[(0, 0, 0)].pop()), BLACK )
+                        removed_b.remove()
+                      
 
                         
                     #board.update_liberties(added_stone)

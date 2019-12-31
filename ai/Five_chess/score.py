@@ -2,14 +2,14 @@
 # coding: utf-8
 
 class scores:
-    one = 1
-    two = 10
-    three = 100
-    four = 10000
-    five = 1000000
-    blocked_two = 1
-    blocked_three = 10
-    blocked_four = 1000
+    one = 10
+    two = 100
+    three = 1000
+    four = 100000
+    five = 10000000
+    blocked_two = 10
+    blocked_three = 100
+    blocked_four = 10000
 
 class players:
     com = 1

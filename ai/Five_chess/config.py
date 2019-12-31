@@ -11,4 +11,4 @@ debug = False
 log = True
 eval_point = False
 clear_cache = False # negamax.deeping()
-onlyThrees = True
+onlyThrees = False

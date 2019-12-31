@@ -4,7 +4,6 @@ from board import matrix, board, playersScore
 from negamax import deepAll
 from opening import match as opening
 from score import players as P
-from evaluate_point import scorePoint
 class AI:
     def start(self, random = None): # omit 26 kinds of openings
         if random: 
@@ -18,7 +17,6 @@ class AI:
             #p = playersScore(x, y)
         else: p = deepAll(deep = config.searchDeep)  #遞迴
         board.put(P.com, p)
-        board.initScore()  #重新評估局面情勢
         return p
 
     def turn(self, x, y): #下子並計算
@@ -27,40 +25,42 @@ class AI:
     #delete set
     def forward(self): 
         board.forward()
-ai = AI()
-if __name__ == '__main__':
-    if input('who first?') == '1': ai.begin()
-    print(board)
+    def backward(self):
+        board.backward()
+
+def auto(x,y):
+    ai = AI()
+    #if bk:
+    #    ai.backward()
+    #    return
+    a = ai.begin()
+
+    print(board)    
     board.put(P.hum, playersScore(x, y))
-    #ai.begin()
     print(board)
     table, table2 = '', ''
     for i in range(15):
         table += ''.join(str(board.humScore[i])) + '\n'
         table2 += ''.join(str(board.comScore[i])) + '\n'
+    # 把電腦下的座標回傳GUI
+    return (a.pos)
+    
+    '''
     while True:
-        #bk = input('bk')
-        #if bk == 'bk': ai.backward()
-        #elif bk == 'fk': ai.forward()
-        if True:
-            x,y = int(input('x:')), int(input('y:'))
-            if board.board[x][y] == P.empty: 
-                board.put(P.hum, playersScore(x, y))
-                board.stepsTail = []
-                print(ai.begin().pos)
-                
+        #x,y = int(input('x:')), int(input('y:'))
+        board.put(P.hum, playersScore(x, y))
+        ai.begin()
         print(board)
         table, table2 = '', ''
         for i in range(15):
             table += ''.join(str(board.humScore[i])) + '\n'
             table2 += ''.join(str(board.comScore[i])) + '\n'
-        print(table)
-        print(table2)
-        if input() == '':
-            config.eval_point = True
-            print(scorePoint(board, int(input('x:')), int(input('y:')), int(input('player:'))))  #debug用
-            print(scorePoint(board, int(input('x:')), int(input('y:')), int(input('player:'))))  #debug用
-            config.eval_point = False
-        #print(board.currentSteps)
+        #print(table)
+        #print(table2)
         #print(board.allSteps)
-        #print(board.allSteps)
+    '''
+def bk():
+    ai = AI()
+    ai.backward()    
+if __name__ == "__main__":
+    auto(8,2)

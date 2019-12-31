@@ -27,9 +27,8 @@ class AI:
         board.forward()
     def backward(self):
         board.backward()
-
+ai = AI()
 def auto(x,y):
-    ai = AI()
     #if bk:
     #    ai.backward()
     #    return
@@ -60,7 +59,6 @@ def auto(x,y):
         #print(board.allSteps)
     '''
 def bk():
-    ai = AI()
     ai.backward()    
 if __name__ == "__main__":
     auto(8,2)

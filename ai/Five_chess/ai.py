@@ -17,27 +17,23 @@ class AI:
             #x, y = opening(board)[0], opening(board)[1] #用開局庫
             #p = playersScore(x, y)
         else: p = deepAll(deep = config.searchDeep)  #遞迴
-        board.put(P.com, p)
-        board.initScore()  #重新評估局面情勢
-        return p
+        if board.board[p.pos[0]][p.pos[1]] == P.empty:
+            board.put(P.com, p)
+            board.initScore()  #重新評估局面情勢
+            print(board)
+            return p
+        else: return
 
-    def turn(self, x, y): #下子並計算
-        board.put(playersScore(x, y), P.hum)
-        return self.begin()
-    #delete set
+    def backward(self):
+        board.backward()
+
     def forward(self): 
         board.forward()
 ai = AI()
+
 if __name__ == '__main__':
     if input('who first?') == '1': ai.begin()
     print(board)
-    board.put(P.hum, playersScore(x, y))
-    #ai.begin()
-    print(board)
-    table, table2 = '', ''
-    for i in range(15):
-        table += ''.join(str(board.humScore[i])) + '\n'
-        table2 += ''.join(str(board.comScore[i])) + '\n'
     while True:
         #bk = input('bk')
         #if bk == 'bk': ai.backward()
@@ -54,6 +50,9 @@ if __name__ == '__main__':
         for i in range(15):
             table += ''.join(str(board.humScore[i])) + '\n'
             table2 += ''.join(str(board.comScore[i])) + '\n'
+        #print(board.currentSteps)
+        #print(board.allSteps)
+        #print(board.allSteps)
         print(table)
         print(table2)
         if input() == '':
@@ -61,6 +60,3 @@ if __name__ == '__main__':
             print(scorePoint(board, int(input('x:')), int(input('y:')), int(input('player:'))))  #debug用
             print(scorePoint(board, int(input('x:')), int(input('y:')), int(input('player:'))))  #debug用
             config.eval_point = False
-        #print(board.currentSteps)
-        #print(board.allSteps)
-        #print(board.allSteps)

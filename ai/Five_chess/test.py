@@ -7,9 +7,10 @@ Created on Tue Dec 17 17:36:16 2019
 
 import pygame as pg
 from pygame.locals import *
-from ai_modified import auto, bk
-
-BACKGROUND = 'D:/Users/sab93/Desktop/python/final-project/ai/Five_chess/ramin.jpg'                       # 棋盤圖 from github
+from ai import ai
+from board import board, playersScore
+from score import players as P
+BACKGROUND = 'D:/final project/final-project/ai/Five_chess/ramin.jpg'# 棋盤圖 from github
 BOARD_SIZE = (820, 820)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -158,8 +159,9 @@ def GUI():
                     if not stone :
                         added_stone = Stone(rboard, (x, y), rboard.turn())
                         added_stone.draw()                       # 玩家下(先手 白 )
+                        board.put(P.hum, playersScore(y-1,x-1))
 
-                        a, b = auto(y-1,x-1)                     
+                        a, b = tuple(ai.begin().pos)                     
                         #print(a,b)
                         if not rboard.search(point=(b+1,a+1)):   # 有時會沒下到(可能重複下) 擋活三死四時發生
                             rboard.auto_draw(b+1,a+1)                    # 電腦下
@@ -168,7 +170,7 @@ def GUI():
                    
                     if rboard.groups[(255, 255, 255)] and rboard.groups[(0, 0, 0)]: 
                         print("悔棋")
-                        bk()
+                        ai.backward()
                         removed_w = Stone(rboard, (rboard.groups[(255, 255, 255)].pop()), WHITE )
                         removed_w.remove()
                         removed_b = Stone(rboard, (rboard.groups[(0, 0, 0)].pop()), BLACK )

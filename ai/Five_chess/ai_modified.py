@@ -28,15 +28,16 @@ class AI:
 
 def auto(x,y):
     ai = AI()
-    ai.begin()
-    print(board)
+    a = ai.begin()
+    print(board)    
     board.put(P.hum, playersScore(x, y))
-    #ai.begin()
     print(board)
     table, table2 = '', ''
     for i in range(15):
         table += ''.join(str(board.humScore[i])) + '\n'
         table2 += ''.join(str(board.comScore[i])) + '\n'
+    # 把電腦下的座標回傳GUI
+    return (a.pos)
     '''
     while True:
         #x,y = int(input('x:')), int(input('y:'))
@@ -51,3 +52,5 @@ def auto(x,y):
         #print(table2)
         #print(board.allSteps)
     '''
+if __name__ == "__main__":
+    auto(8,2)

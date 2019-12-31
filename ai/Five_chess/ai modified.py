@@ -37,6 +37,8 @@ def auto(x,y):
     for i in range(15):
         table += ''.join(str(board.humScore[i])) + '\n'
         table2 += ''.join(str(board.comScore[i])) + '\n'
+     
+    return playersScore(x, y)
     '''
     while True:
         #x,y = int(input('x:')), int(input('y:'))

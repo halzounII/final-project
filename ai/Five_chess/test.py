@@ -11,13 +11,11 @@ from ai import ai
 from board import board, playersScore
 from score import players as P
 from os import getcwd
-
-BACKGROUND = getcwd().replace('\\', '/') + '/Five_chess/ramin.jpg'# 棋盤圖 from github
+BACKGROUND = getcwd().replace('\\', '/') + '/ramin.jpg'# 棋盤圖 from github
 BOARD_SIZE = (820, 820)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
-
 class Stone(object):                           # 棋子
     def __init__(self, rboard, point, color):
         """Create and initialize a stone.

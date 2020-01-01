@@ -1,6 +1,2 @@
-/Five_chess/build/*.*
-/Five_chess/build/test
-/Five_chess/dist/*.*
-/Five_chess/dist/test/
 /Five_chess/__pycache__/*.*
 *.js

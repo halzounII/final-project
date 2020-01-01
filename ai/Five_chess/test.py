@@ -5,8 +5,8 @@ Created on Tue Dec 17 17:36:16 2019
 @author: sab93
 """
 
-import pygame as pg
-from pygame.locals import *
+from pygame import draw, display, Rect, mouse, event, time, init, image
+from pygame.locals import K_ESCAPE, KEYDOWN, MOUSEBUTTONDOWN, QUIT
 from ai import ai
 from board import board, playersScore
 from score import players as P
@@ -32,17 +32,17 @@ class Stone(object):                           # 棋子
         
     def draw(self):
         """Draw the stone as a circle."""
-        pg.draw.circle(screen, self.color, self.coords, 20, 0)            #(Surface, color, pos , raduis, width)
-        pg.display.update()
+        draw.circle(screen, self.color, self.coords, 20, 0)            #(Surface, color, pos , raduis, width)
+        display.update()
         
 
     
     def remove(self):                                                     # 移除(悔棋)
         """Remove the stone from board."""
         blit_coords = (self.coords[0] - 20, self.coords[1] - 20)
-        area_rect = pg.Rect(blit_coords, (40, 40))
+        area_rect = Rect(blit_coords, (40, 40))
         screen.blit(background, blit_coords, area_rect)
-        pg.display.update()
+        display.update()
         #self.group.stones.remove(self)
         del self
 
@@ -53,8 +53,8 @@ class RealBoard(object):                           # 棋盤
         """Create and initialize an empty board."""
         self.groups = {(0, 0, 0):[], (255, 255, 255):[]}
         self.next = BLACK
-        self.outline = pg.Rect(45, 45, 560, 560)   # (起始x y x長 y長 )
-        self.regret = pg.Rect(625, 45, 150 ,75)
+        self.outline = Rect(45, 45, 560, 560)   # (起始x y x長 y長 )
+        self.regret = Rect(625, 45, 150 ,75)
         self.draw()
         self.bk = False
         
@@ -66,20 +66,20 @@ class RealBoard(object):                           # 棋盤
         This method should only be called once, when initializing the
         board.
         """
-        pg.draw.rect(background, BLACK, self.outline, 3)
-        pg.draw.rect(background, BLACK, self.regret, 3)
+        draw.rect(background, BLACK, self.outline, 3)
+        draw.rect(background, BLACK, self.regret, 3)
         # Outline is inflated here for future use as a collidebox for the mouse
         self.outline.inflate_ip(20, 20)            #原地放大縮小 用處??
         for i in range(14):
             for j in range(14):
-                rect = pg.Rect(45 + (40 * i), 45 + (40 * j), 40, 40)
-                pg.draw.rect(background, BLACK, rect, 1)
+                rect = Rect(45 + (40 * i), 45 + (40 * j), 40, 40)
+                draw.rect(background, BLACK, rect, 1)
         for i in range(2):
             for j in range(2):
                 coords = (165 + (320 * i), 165 + (320 * j))
-                pg.draw.circle(background, BLACK, coords, 5, 0)
+                draw.circle(background, BLACK, coords, 5, 0)
         screen.blit(background, (0, 0))                                 # 重繪視窗
-        pg.display.update()                                             # 更新視窗
+        display.update()                                             # 更新視窗
 
     def search(self, point=None, points=[]):
         """Search the board for a stone.
@@ -101,20 +101,20 @@ class RealBoard(object):                           # 棋盤
     
     @staticmethod    
     def Preview():
-        pos = pg.mouse.get_pos()
+        pos = mouse.get_pos()
         x = int(round(((pos[0] - 5) / 40.0), 0))*40-5
         y = int(round(((pos[1] - 5) / 40.0), 0))*40-5
         stone = rboard.search(point=(x, y))
         print(stone)
         if not stone:
-            preview = pg.Rect([x, y, 20, 20])           
-            pg.draw.rect(screen, RED, preview, 1)
-            pg.display.update()
-            pg.time.wait(30)
+            preview = Rect([x, y, 20, 20])           
+            draw.rect(screen, RED, preview, 1)
+            display.update()
+            time.wait(30)
             blit_coords = (x , y )
-            area_rect = pg.Rect(blit_coords, (20, 20))
+            area_rect = Rect(blit_coords, (20, 20))
             screen.blit(background, blit_coords, area_rect)
-            pg.display.update()
+            display.update()
 
     def turn(self):
         """Keep track of the turn by flipping between BLACK and WHITE."""
@@ -140,20 +140,20 @@ def GUI():
     #added_stone.draw()
     rboard.next = WHITE
     while run:
-        for event in pg.event.get():   
+        for _event in event.get():   
 
             #RealBoard.Preview()
             #print(pos,x,y)
-            if event.type == KEYDOWN:           # 觸發關閉視窗
-                if event.key == K_ESCAPE:
+            if _event.type == KEYDOWN:           # 觸發關閉視窗
+                if _event.key == K_ESCAPE:
                     run = False
-            elif event.type == QUIT:
+            elif _event.type == QUIT:
                 run = False
 
-            elif event.type == pg.MOUSEBUTTONDOWN:  # 下棋
-                if event.button == 1 and rboard.outline.collidepoint(event.pos):            
-                    x = int(round(((event.pos[0] - 5) / 40.0), 0))
-                    y = int(round(((event.pos[1] - 5) / 40.0), 0))
+            elif _event.type == MOUSEBUTTONDOWN:  # 下棋
+                if _event.button == 1 and rboard.outline.collidepoint(_event.pos):            
+                    x = int(round(((_event.pos[0] - 5) / 40.0), 0))
+                    y = int(round(((_event.pos[1] - 5) / 40.0), 0))
                     stone = rboard.search(point=(x, y))
 
                     if not stone :
@@ -166,7 +166,7 @@ def GUI():
                         if not rboard.search(point=(b+1,a+1)):   # 有時會沒下到(可能重複下) 擋活三死四時發生
                             rboard.auto_draw(b+1,a+1)                    # 電腦下
                             rboard.next = WHITE
-                if event.button == 1 and rboard.regret.collidepoint(event.pos):
+                if _event.button == 1 and rboard.regret.collidepoint(_event.pos):
                    
                     if rboard.groups[(255, 255, 255)] and rboard.groups[(0, 0, 0)]: 
                         print("悔棋")
@@ -185,10 +185,10 @@ def GUI():
     
     
 if __name__ == '__main__':
-    pg.init()
-    pg.display.set_caption('Goban')
-    screen = pg.display.set_mode(BOARD_SIZE, 0, 32)
-    background = pg.image.load(BACKGROUND).convert()
+    init()
+    display.set_caption('Goban')
+    screen = display.set_mode(BOARD_SIZE, 0, 32)
+    background = image.load(BACKGROUND).convert()
     rboard = RealBoard()
     GUI()
     '''

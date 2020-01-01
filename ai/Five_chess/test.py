@@ -10,7 +10,9 @@ from pygame.locals import *
 from ai import ai
 from board import board, playersScore
 from score import players as P
-BACKGROUND = 'D:/final project/final-project/ai/Five_chess/ramin.jpg'# 棋盤圖 from github
+from os import getcwd
+
+BACKGROUND = getcwd().replace('\\', '/') + '/Five_chess/ramin.jpg'# 棋盤圖 from github
 BOARD_SIZE = (820, 820)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)

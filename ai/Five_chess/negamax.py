@@ -3,6 +3,9 @@ from score import players as P
 import config
 from board import board, playersScore
 from time import perf_counter
+from math import ceil
+from random import choice
+
 # ToDo:
 #   1. rearrange deeping's result --done
 #   2. comprehend r function
@@ -12,6 +15,7 @@ class var:
     count, PVcut, ABcut = 0, 0, 0
     Cache = {}
     start_counter: float = 0
+    index = 0
 
 def negamax(candidates, player:int, deep:int, alpha, beta) -> int:
     if config.debug: print([i.pos for i in candidates])
@@ -26,10 +30,11 @@ def negamax(candidates, player:int, deep:int, alpha, beta) -> int:
         if config.debug: print(f'alpha: {alpha}')
         board.remove(c)
         c.v = v         # 該點經由後續遞迴的得出的分數
-        if perf_counter() - var.start_counter > config.timeLimit: 
+        timeSpent = perf_counter() - var.start_counter
+        if  timeSpent > config.timeLimit: 
             print('time out!'); break
         if config.log:
-            print(f'迭代完成, deep = {deep}')
+            print(f'迭代完成, deep = {deep}, 耗時 {perf_counter() - var.start_counter} s.')
             # vct; vcf
     return alpha #回傳最佳解
 # 遞迴搜索(step: 總步數, steps: 所有棋步, spread: 延伸搜索次數)
@@ -96,17 +101,30 @@ def deeping(candidates: list, player, deep = config.searchDeep):
             if config.debug: print('win')
             break 
         #可贏，跳出
-    result = candidates[0]
-    for i in candidates[1:]:
-        if i.v['score'] > result.v['score']: result = i
-        elif i.v['score'] == result.v['score']:
-            if i.v['score'] >= 0 and i.v['step'] < result.v['step']: result = i
-            elif i.v['step'] > result.v['step']: result = i 
-    result.score = result.v['score']
+    chosen, choices = [], []
+    if config.log: 
+        for i in candidates: print(i.v)
+    for k in range(ceil(len(candidates)/3)): #randomly pick good candidates
+        result = candidates[0]
+        for j, i in enumerate(candidates[1:]):
+            if j in chosen: continue
+            if i.v['score'] > result.v['score']: result = i; var.index = j
+            elif i.v['score'] == result.v['score']:
+                if i.v['score'] >= 0 and i.v['step'] < result.v['step']: 
+                    result = i; var.index = j
+                elif i.v['score'] < 0 and i.v['step'] > result.v['step']: 
+                        result = i; var.index = j 
+            result.score = result.v['score']
+        choices.append(result)
+        if config.log: 
+            print(var.index)
+            print(result.v)
+        chosen.append(var.index)
+
     #timeSpent = perf_counter() - start_counter
     #print(timeSpent)
     #print(result.score, result.v)
-    return  result #playersScore()
+    return  choice(choices) #playersScore()
 
 def deepAll(player = P.com, deep = config.searchDeep):
     return deeping(board.generator(player, config.onlyThrees, config.starSpread), player, deep)

@@ -13,13 +13,13 @@ class AI:
         return {'board': board}
     def begin(self):  #電腦下棋，開始搜索
         if board.allSteps == []: p = playersScore(7,7) 
-        #elif len(board.allSteps) == 2: 
-            #x, y = opening(board)[0], opening(board)[1] #用開局庫
-            #p = playersScore(x, y)
+        elif len(board.allSteps) == 2: 
+            x, y = opening(board)[0], opening(board)[1] #用開局庫
+            p = playersScore(x, y)
         else: p = deepAll(deep = config.searchDeep)  #遞迴
         if board.board[p.pos[0]][p.pos[1]] == P.empty:
             board.put(P.com, p)
-            board.initScore()  #重新評估局面情勢
+            #board.initScore()  #重新評估局面情勢
             print(board)
             return p
         else: return
@@ -33,11 +33,10 @@ ai = AI()
 
 if __name__ == '__main__':
     if input('who first?') == '1': ai.begin()
-    print(board)
     while True:
-        #bk = input('bk')
-        #if bk == 'bk': ai.backward()
-        #elif bk == 'fk': ai.forward()
+        bk = input('bk')
+        if bk == 'bk': ai.backward()
+        elif bk == 'fk': ai.forward()
         if True:
             x,y = int(input('x:')), int(input('y:'))
             if board.board[x][y] == P.empty: 
@@ -45,7 +44,6 @@ if __name__ == '__main__':
                 board.stepsTail = []
                 print(ai.begin().pos)
                 
-        print(board)
         table, table2 = '', ''
         for i in range(15):
             table += ''.join(str(board.humScore[i])) + '\n'

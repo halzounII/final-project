@@ -132,18 +132,18 @@ class Board:
     
     def put(self, player: int, place = playersScore()) -> None:
         if self.board[place.pos[0]][place.pos[1]] != 0: return  #該位置已經有棋
-        if player == 0: player = 2 #遇到bug
+        place.player = player
         if config.debug: print(f'put[{place.pos}] {player}')
         self.board[place.pos[0]][place.pos[1]] = player
         self.z.go(place.pos[0], place.pos[1], player) #執行zobrist運算，產生棋型代碼
         self.allSteps.append(place)   #把此步加到所有步數裡
         self.currentSteps.append(place)
-        #self.stepsTail = []  # ??
         self.updateScore(place)
         self.count += 1
 
     def remove(self, place = playersScore()) -> None:
         if self.board[place.pos[0]][place.pos[1]] == 0: return  #該位置沒棋
+        if place.player == 0: raise ValueError('remove P.empty')
         self.z.go(place.pos[0], place.pos[1], self.board[place.pos[0]][place.pos[1]])
         if config.debug: print(f'remove{place.pos} {place.player}')
         self.board[place.pos[0]][place.pos[1]] = P.empty
@@ -241,11 +241,14 @@ class Board:
                     elif place.scoreHum >= s.two: hum_twos.appendleft(place)
                     else: neighbors.append(place) # 沒有連棋，而周圍有對手棋 
                     
-        if len(fives): #print('fives')
+        if len(fives): 
+            if config.gen: print(f'fives: {fives[0].pos}',)
             return fives   #有連五，先返回
-        elif player == P.com and len(com_fours): #print('com_fours')
+        elif player == P.com and len(com_fours): 
+            if config.gen: print(f'com_fours: {com_fours[0].pos}')
             return com_fours  #自己可活四就先活四
-        elif player == P.hum and len(hum_fours): #print('hum_fours')
+        elif player == P.hum and len(hum_fours): 
+            if config.gen: print(f'hum_fours: {hum_fours[0].pos}')
             return hum_fours  #否則防守對方活四
         elif player == P.com and len(hum_fours) and not len(com_blockedfours): #print('def_hum_fours')
             return hum_fours

@@ -18,7 +18,7 @@ class var:
     index = 0
 
 def negamax(candidates, player:int, deep:int, alpha, beta) -> int:
-    if config.debug: print([i.pos for i in candidates])
+    if config.debug or config.gen: print([i.pos for i in candidates])
     var.count, var.PVcut, var.ABcut = 0, 0, 0 #參數歸零
     board.currentSteps = []
     for i in range(len(candidates)):   #遍歷所有可能的應手
@@ -39,7 +39,6 @@ def negamax(candidates, player:int, deep:int, alpha, beta) -> int:
     return alpha #回傳最佳解
 # 遞迴搜索(step: 總步數, steps: 所有棋步, spread: 延伸搜索次數)
 def r(deep, alpha, beta, player, step: int,steps: list, spread) -> dict:
-    #print(f'deep: {deep}')
     #1. 檢查此棋型是否已被搜索過 
     if config.cache:
         for i in var.Cache:
@@ -98,15 +97,16 @@ def deeping(candidates: list, player, deep = config.searchDeep):
     if config.clear_cache: var.Cache = {}  #清空暫存
     for i in range(2, deep + 1, 2):  #從兩層開始逐漸加深到指定的deep
         if negamax(candidates, player, i, var.MIN , var.MAX) >= s.five: 
-            if config.debug: print('win')
+            if config.debug or config.gen: print('win')
             break 
         #可贏，跳出
     chosen, choices = [], []
     if config.log: 
         for i in candidates: print(i.v)
-    for k in range(ceil(len(candidates)/3)): #randomly pick good candidates
+    for k in range(ceil(len(candidates)/5)): #randomly pick good candidates
         result = candidates[0]
         for j, i in enumerate(candidates[1:]):
+            if i.v['ABcut'] == 1: del i;continue #raise Exception('pruning bugs?')
             if j in chosen: continue
             if i.v['score'] > result.v['score']: result = i; var.index = j
             elif i.v['score'] == result.v['score']:
@@ -116,7 +116,7 @@ def deeping(candidates: list, player, deep = config.searchDeep):
                         result = i; var.index = j 
             result.score = result.v['score']
         choices.append(result)
-        if config.log: 
+        if config.log or config.gen: 
             print(var.index)
             print(result.v)
         chosen.append(var.index)
@@ -126,6 +126,6 @@ def deeping(candidates: list, player, deep = config.searchDeep):
     #print(result.score, result.v)
     return  choice(choices) #playersScore()
 
-def deepAll(player = P.com, deep = config.searchDeep):
-    return deeping(board.generator(player, config.onlyThrees, config.starSpread), player, deep)
+def deepAll(deep = config.searchDeep):
+    return deeping(board.generator(P.com, config.onlyThrees, config.starSpread), P.com, deep)
     #0表示不開啟onlyThree模式

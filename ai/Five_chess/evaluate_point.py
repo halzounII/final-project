@@ -118,7 +118,7 @@ def scorePoint(b, px: int, py: int, player: int, direction = None) -> int:
         reset()
         #左下是否有棋
         for i in range(1,16):
-            if px+i < 0 or py-i < 0 or px+i >= size or py-i >= size:
+            if py-i < 0 or px+i >= size:
                 par['block'] += 1; break
             t = board[px+i][py-i]
             if t == P.empty:
@@ -134,7 +134,7 @@ def scorePoint(b, px: int, py: int, player: int, direction = None) -> int:
                 break
         #右上是否有棋
         for i in range(1,16): #check range 
-            if px-i < 0 or py+i < 0 or px-i >= size or py+i >= size:
+            if px-i < 0 or py+i >= size:
                 par['block'] += 1; break
             t = board[px-i][py+i]
             if t == P.empty:
@@ -170,11 +170,11 @@ def countToScore(count: int, block: int, empty: int = 0) -> int:
             elif count == 4: return s.blocked_four
     elif empty == 1 or empty == count - 1:  #最後一子前方有空格
         if count >= 6: return s.five        # 5 + blank + 1
-        elif block == 0:
-            if count == 2: return s.two/2   # 間二
-            elif count == 3: return s.three
-            elif count == 4: return s.blocked_four
-            elif count == 5: return s.four
+        elif block == 0: 
+            if count == 2: return s.two * 0.5   # 間二
+            elif count == 3: return s.three * 0.7  
+            elif count == 4: return s.blocked_four * 0.7
+            elif count == 5: return s.four * 0.7
         elif block == 1:
             if count == 2: return s.blocked_two
             elif count == 3: return s.blocked_three
@@ -183,23 +183,23 @@ def countToScore(count: int, block: int, empty: int = 0) -> int:
     elif empty == 2 or empty == count - 2:   #倒數第二子前方有空格
         if count >= 7: return s.five       # 5 + blank + 2
         elif block == 0:                   # 評分需要修正
-            if count == 3: return s.blocked_three
-            elif count == 4: return s.three
+            if count == 3: return s.three * 0.7
+            elif count == 4: return s.blocked_four * 0.7
             elif count == 5: return s.blocked_four
             elif count == 6: return s.four
         elif block == 1:
-            if count == 3: return s.blocked_three
-            elif count == 4: return s.blocked_four
-            elif count == 5: return s.blocked_four
+            if count == 3: return s.blocked_three * 0.7
+            elif count == 4: return s.blocked_four * 0.5
+            elif count == 5: return s.blocked_four * 0.7
             elif count == 6: return s.four
         elif block == 2:
-            if count == 6: return s.blocked_four
+            if count == 6: return s.blocked_four * 0.5
     elif empty == 3 or empty == count - 3:
         if count >= 8: return s.five
         elif block == 0:
             if count == 5: return s.three
             elif count == 6: return s.blocked_four
-            elif count == 7: return s.four
+            elif count == 7: return s.four * 1.2
         elif block == 1:
             if count == 6: return s.blocked_four
             elif count == 7: return s.four

@@ -50,7 +50,6 @@ if __name__ == '__main__':
             table2 += ''.join(str(board.comScore[i])) + '\n'
         #print(board.currentSteps)
         #print(board.allSteps)
-        #print(board.allSteps)
         print(table)
         print(table2)
         if input() == '':

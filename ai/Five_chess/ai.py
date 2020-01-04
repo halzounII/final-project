@@ -23,25 +23,27 @@ class AI:
         board.put(playersScore(x, y), P.hum)
         return self.begin()
     #delete set
+
+    def backward(self):
+        board.backward()
+
     def forward(self): 
         board.forward()
-
-def auto(x,y):
-    ai = AI()
+ai = AI()
+if __name__ == '__main__':
     ai.begin()
     print(board)
-    board.put(P.hum, playersScore(x, y))
-    #ai.begin()
-    print(board)
-    table, table2 = '', ''
-    for i in range(15):
-        table += ''.join(str(board.humScore[i])) + '\n'
-        table2 += ''.join(str(board.comScore[i])) + '\n'
-    '''
     while True:
-        #x,y = int(input('x:')), int(input('y:'))
-        board.put(P.hum, playersScore(x, y))
-        ai.begin()
+        bk = input('bk')
+        if bk == 'bk': ai.backward()
+        elif bk == 'fk': ai.forward()
+        else:
+            x,y = int(input('x:')), int(input('y:'))
+            if board.board[x][y] == P.empty: 
+                board.put(P.hum, playersScore(x, y))
+                board.stepsTail = []
+                ai.begin()
+                
         print(board)
         table, table2 = '', ''
         for i in range(15):
@@ -49,5 +51,6 @@ def auto(x,y):
             table2 += ''.join(str(board.comScore[i])) + '\n'
         #print(table)
         #print(table2)
+        print(board.currentSteps)
+        print(board.allSteps)
         #print(board.allSteps)
-    '''

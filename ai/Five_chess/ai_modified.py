@@ -35,9 +35,9 @@ def auto(x,y):
     #    return
     a = ai.begin()
 
-    print(board)    
+    #print(board)    
     board.put(P.hum, playersScore(x, y))
-    print(board)
+    #print(board)
     table, table2 = '', ''
     for i in range(15):
         table += ''.join(str(board.humScore[i])) + '\n'

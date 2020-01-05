@@ -178,8 +178,8 @@ def countToScore(count: int, block: int, empty: int = 0) -> int:
         elif block == 1:
             if count == 2: return s.blocked_two
             elif count == 3: return s.blocked_three
-            elif count == 4: return s.blocked_four
-            elif count == 5: return s.blocked_four
+            elif count == 4: return s.blocked_four * 0.9
+            elif count == 5: return s.blocked_four * 0.7
     elif empty == 2 or empty == count - 2:   #倒數第二子前方有空格
         if count >= 7: return s.five       # 5 + blank + 2
         elif block == 0:                   # 評分需要修正
@@ -201,7 +201,7 @@ def countToScore(count: int, block: int, empty: int = 0) -> int:
             elif count == 6: return s.blocked_four
             elif count == 7: return s.four * 1.2
         elif block == 1:
-            if count == 6: return s.blocked_four
+            if count == 6: return s.blocked_four * 0.7
             elif count == 7: return s.four
         elif block == 2:
             if count == 7: return s.blocked_four

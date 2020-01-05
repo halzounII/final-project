@@ -18,7 +18,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 class Stone(object):                           # 棋子
-    def __init__(self, rboard, point, color):
+    def __init__(self, rboard, point, color = None):
         """Create and initialize a stone.
         Arguments:
         board -- the board which the stone resides on
@@ -33,7 +33,7 @@ class Stone(object):                           # 棋子
         
     def draw(self):
         """Draw the stone as a circle."""
-        draw.circle(background, self.color, self.coords, 20, 0)            #(Surface, color, pos , raduis, width)
+        draw.circle(background, BLACK if rboard.next == WHITE else WHITE, self.coords, 20, 0)            #(Surface, color, pos , raduis, width)
         screen.blit(background, (0, 0))
         display.update()
         
@@ -55,7 +55,7 @@ class RealBoard(object):                           # 棋盤
     def __init__(self):
         """Create and initialize an empty board."""
         self.groups = {(0, 0, 0):[], (255, 255, 255):[]}
-        self.next = BLACK
+        self.next = WHITE
         self.outline = Rect(45, 65, 560, 560)   # (起始x y x長 y長 )
         self.regret = Rect(625, 65, 150 ,75)
         self.draw()
@@ -85,7 +85,7 @@ class RealBoard(object):                           # 棋盤
         screen.blit(background, (0, 0))                                 # 重繪視窗
         display.update()                                             # 更新視窗
 
-    def search(self, point=None, points=[]):
+    def search(self, point=None, points=[], redRect = False):
         """Search the board for a stone.
         The board is searched in a linear fashion, looking for either a
         stone in a single point (which the method will immediately
@@ -97,7 +97,7 @@ class RealBoard(object):                           # 棋盤
 
         if point in self.groups[WHITE] or point in self.groups[BLACK] :
             return True
-        else:
+        elif not redRect:
             self.groups[self.next].append(point)
             print(f"黑棋位置{self.groups[0,0,0]}\n白棋位置{self.groups[(255,255,255)]}")
             return False
@@ -108,8 +108,8 @@ class RealBoard(object):                           # 棋盤
         pos = mouse.get_pos()
         x = int(round(((pos[0] - 5) / 40.0), 0))*40-5
         y = int(round(((pos[1] - 25) / 40.0), 0))*40+15
-        stone = rboard.search(point=(x, y))
-        print(stone)
+        stone = rboard.search(point=(x, y), redRect = True)
+        #print(stone)
         if not stone and (45<=x<=605) and (65<=y<=625):
             preview = Rect([x, y, 20, 20])           
             draw.rect(screen, RED, preview, 1)
@@ -138,7 +138,6 @@ class RealBoard(object):                           # 棋盤
 def GUI():
     s_hit = pg.mixer.Sound('Wate.wav')  #括弧為音檔名稱 
     s_hit.set_volume(0.7)  #設定音量大小，參值0~1 
-    #pg.init()                                   # 初始化
     #window = pg.display.set_mode((900,900))     # 建視窗
     run = True
     #rboard.search(point=(8, 8))
@@ -151,7 +150,7 @@ def GUI():
     pg.display.update()
     #regret_outline  = pg.Rect(625, 65, 150 ,75)
     start_ticks=pg.time.get_ticks() #將目前的時間記錄下來, 單位是毫秒
-    rboard.next = WHITE
+    rboard.next = BLACK
     while run:
 
         T_count = 10 - (pg.time.get_ticks()-start_ticks)/1000  #倒數20秒 兩個時間差, 單位是毫秒
@@ -166,7 +165,7 @@ def GUI():
             count_time = font.render('你輸了!!!', True, (255,0,0), (000,255,255)) 
             screen.blit(count_time, (345,0))
             pg.display.update()
-            pg.time.wait(3000)
+            pg.time.wait(1500)
             quit()
         else:
             count_time_str = f'{T_count:04.1f}'
@@ -191,35 +190,35 @@ def GUI():
 
                     if not stone :
                         added_stone = Stone(rboard, (x, y), rboard.turn())
-                        added_stone.draw()                       # 玩家下(先手 白 )
+                        added_stone.draw()                       # 玩家下(先手 黑 )
                         board.put(P.hum, playersScore(y-1,x-1))
                         s_hit.play()
 
                         a, b = tuple(ai.begin().pos)
                         start_ticks=pg.time.get_ticks() #AI下完棋後, 將目前的時間記錄下來, 單位是毫秒                   
-                        #print(a,b)
                         if not rboard.search(point=(b+1,a+1)):   # 有時會沒下到(可能重複下) 擋活三死四時發生
-                            rboard.auto_draw(b+1,a+1)                    # 電腦下
-                            rboard.next = WHITE
-                if _event.button == 1 and rboard.regret.collidepoint(_event.pos):
+                            #rboard.auto_draw(b+1,a+1)                    # 電腦下
+                            added_stone = Stone(rboard, (b+1, a+1), rboard.turn())
+                            added_stone.draw()
+                elif _event.button == 1 and rboard.regret.collidepoint(_event.pos):
                    
                     if rboard.groups[(255, 255, 255)] and rboard.groups[(0, 0, 0)]: 
                         print("悔棋")
-                        ai.backward()
                         start_ticks=pg.time.get_ticks()
-                        removed_w = Stone(rboard, (rboard.groups[(255, 255, 255)].pop()), WHITE )
-                        removed_w.remove()
-                        removed_b = Stone(rboard, (rboard.groups[(0, 0, 0)].pop()), BLACK )
-                        removed_b.remove() 
-                        screen.blit(background,(0,0))
-                        display.update()                    
+                        removed_b = Stone(rboard, (board.allSteps[-1].pos[1]+1, board.allSteps[-1].pos[0]+1))
+                        if removed_b: removed_b.remove(); print(removed_b.point)
+                        removed_w = Stone(rboard, (board.allSteps[-2].pos[1]+1, board.allSteps[-2].pos[0]+1))
+                        if removed_w:
+                            removed_w.remove(); print(removed_w.point)
+                        ai.backward() 
+                        #screen.blit(background,(0,0))                   
                         s_hit.play()
-                        pg.time.wait(100)
+                        pg.time.wait(200)
                     #board.update_liberties(added_stone)
     exit()
 
 def Setting():  #難度設定
-    font = pg.font.Font("msjhbd.ttc", 28) 
+    font = pg.font.Font(getcwd().replace('\\','/') + '/msjhbd.ttc', 28) 
     text_G = font.render("繼續玩五子棋?", True, (0,0,255), (224,224,80)) 
     text_Y = font.render("是", True, (0,0,255), (224,224,80)) 
     text_N = font.render("否", True, (255,0,0), (224,224,80)) 
@@ -247,7 +246,7 @@ def Setting():  #難度設定
     time.wait(300)
     text_L1 = font.render("初級", True, (0,0,255), (224,224,80)) 
     text_L2 = font.render("中級", True, (0,0,255), (224,224,80)) 
-    text_L3 = font.render("上級", True, (0,0,255), (224,224,80)) 
+    text_L3 = font.render("高級", True, (0,0,255), (224,224,80)) 
     screen.blit(text_L1, (377,240))
     screen.blit(text_L2, (377,300))
     screen.blit(text_L3, (377,360))

@@ -21,11 +21,11 @@ def fixScore(Type: int) -> int: # 避免無謂衝四
         else: return s.four*2  # 雙死四
     return Type
 
-def starTO (point: tuple, points: list) -> bool:
+def starTO (point, points: list) -> bool:
     if not (points and len(points)): return False
-    a = point
+    a = point.pos
     for i in range(len(points)):
-        b = points[i]
+        b = points[i].pos
         if abs(a[0]-b[0]) > 4 and abs(a[1]-b[1]) > 4: return False
         if not (a[0] == b[0]) or a[1] == b[1] or abs(a[0]-b[0]) == abs(a[1]-b[1]): return False
     return True
@@ -166,17 +166,21 @@ class Board:
             self.put(s.player, s)
 
     def evaluate(self, player: int) -> int:  # 當前各自修正後的分數差距
+        for i in self.evaluateCache:
+            if config.cache and self.z.code == i: return self.evaluateCache[i]
         self.comMaxScore, self.humMaxScore = 0, 0
         for i in range(self.size):
             for j in range(self.size):  # board[i]??
-                if self.board[i][j] == P.com:
-                    self.comMaxScore += fixScore(self.comScore[i][j])
-                elif self.board[i][j] == P.hum:
-                    self.humMaxScore += fixScore(self.humScore[i][j])
-        return (1 if player == P.com else -1)*(self.comMaxScore - self.humMaxScore)
+                if self.board[i][j] == P.com and fixScore(self.comScore[i][j]) > self.comMaxScore:
+                    self.comMaxScore = fixScore(self.comScore[i][j])
+                elif self.board[i][j] == P.hum and fixScore(self.humScore[i][j]) > self.humMaxScore:
+                    self.humMaxScore = fixScore(self.humScore[i][j])
+        result = (1 if player == P.com else -1)*(self.comMaxScore - self.humMaxScore)
+        if config.cache: self.evaluateCache[self.z.code] = result
+        return result
     # starspread: 米字計算
     # generator: 回傳所有可能的應手，以五->三排列
-    def generator(self, player: int, onlyThrees, starSpread) -> list:
+    def generator(self, player: int, onlyThrees, starSpread = False) -> list:
         #print('player is ' + str(player)) --debug
         if self.count <= 0: return [7,7] #棋局還沒開始
         fives = []
@@ -226,7 +230,10 @@ class Board:
                     #只看活三以上
                     if onlyThrees and place.score < s.three: continue
                     place.player = player
-                    pass # starspread
+                    if starSpread and config.star and board.count > 3:
+                        if not (place.score > s.four or \
+                        starTO(place, attackPoints) or starTO(place, defendPoints)):
+                            continue #count += 1
                     if place.scoreCom >= s.five: fives.append(place)
                     elif place.scoreHum >= s.five: fives.append(place)
                     elif place.scoreCom >= s.four: com_fours.append(place)

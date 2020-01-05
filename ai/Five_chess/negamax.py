@@ -127,5 +127,5 @@ def deeping(candidates: list, player, deep = config.searchDeep):
     return  choice(choices) #playersScore()
 
 def deepAll(deep = config.searchDeep):
-    return deeping(board.generator(P.com, config.onlyThrees, config.starSpread), P.com, deep)
+    return deeping(board.generator(P.com, False, config.starSpread), P.com, deep)
     #0表示不開啟onlyThree模式

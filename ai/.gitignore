@@ -1,3 +1,6 @@
 /Five_chess/__pycache__/*.*
 *.js
 /Five_chess/planet.py
+*.wav
+msjhbd.ttc
+/Five_chess/build/test/*.*

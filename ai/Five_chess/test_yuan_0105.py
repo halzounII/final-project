@@ -183,10 +183,10 @@ class RealBoard(object):                           # 棋盤
     def win(self, color):
         font = pg.font.Font("D:/Users/sab93/Desktop/python/final-project/ai/Five_chess/msjh.ttc", 50)
         if color == BLACK:
-            text = font.render("你贏了 蒸蚌", True, (0,0,255), (255,255,255))
+            text = font.render("你贏了", True, (0,0,255), (255,255,255))
             screen.blit(text, (200,250))
         else:
-            text = font.render("哈哈哈哈哈", True, (0,0,255), (255,255,255))
+            text = font.render("你輸了", True, (0,0,255), (255,255,255))
             screen.blit(text, (200,250))
         pg.display.update()
         paused()
@@ -221,7 +221,7 @@ def GUI():
     rboard.next = BLACK
     while run:
 
-        T_count = 10 - (pg.time.get_ticks()-start_ticks)/1000  #倒數20秒 兩個時間差, 單位是毫秒
+        T_count = 30 - (pg.time.get_ticks()-start_ticks)/1000  #倒數20秒 兩個時間差, 單位是毫秒
         if T_count < 0:
             count_time = font.render('時間到了!', True, (255,0,0), (000,255,255)) 
             screen.blit(count_time, (345,0))
@@ -281,6 +281,24 @@ def GUI():
                         time.wait(500)
                         screen.blit(background, (0, 0))
                         display.update()
+
+                elif _event.button == 1 and btn_rect.collidepoint(_event.pos):
+                    if rboard.groups[(255, 255, 255)] and rboard.groups[(0, 0, 0)]: 
+                        # 按下動畫
+                        screen.blit(btn[1], BTN_location)
+                        pg.display.update()
+                        pg.time.wait(150)
+                        screen.blit(btn[0], BTN_location)
+                        pg.display.update()
+                        # 動作
+                        start_ticks=pg.time.get_ticks()
+                        #removed_b = Stone(rboard, (board.allSteps[-1].pos[1]+1, board.allSteps[-1].pos[0]+1))
+                        Stones.pop().remove()
+                        #removed_w = Stone(rboard, (board.allSteps[-2].pos[1]+1, board.allSteps[-2].pos[0]+1))
+                        Stones.pop().remove()
+                        ai.backward()                  
+                        s_hit.play()
+                        time.wait(200)
                 '''
                 elif _event.button == 1 and rboard.regret.collidepoint(_event.pos):
                     if rboard.groups[(255, 255, 255)] and rboard.groups[(0, 0, 0)]: 
@@ -295,21 +313,7 @@ def GUI():
                         time.wait(200)
                     #board.update_liberties(added_stone)
                 '''
-                if _event.button == 1 and btn_rect.collidepoint(_event.pos):
-                    if rboard.groups[(255, 255, 255)] and rboard.groups[(0, 0, 0)]: 
-                        # 按下動畫
-                        screen.blit(btn[1], BTN_location)
-                        pg.display.update()
-                        pg.time.wait(150)
-                        screen.blit(btn[0], BTN_location)
-                        pg.display.update()
-                        # 動作
-                        ai.backward()
-                        s_hit.play()
-                        removed_w = Stone(rboard, (rboard.groups[(255, 255, 255)].pop()), WHITE )
-                        removed_w.remove()
-                        removed_b = Stone(rboard, (rboard.groups[(0, 0, 0)].pop()), BLACK )
-                        removed_b.remove()
+                        
                 
     exit()
 
@@ -375,7 +379,7 @@ def Setting():  #難度設定
     
 if __name__ == '__main__':
     init()
-    display.set_caption('拜託不要當我')
+    display.set_caption('五子棋')
     screen = display.set_mode(BOARD_SIZE, pg.RESIZABLE, 32)
     background = image.load(BACKGROUND).convert()
     background_org = image.load(BACKGROUND).convert()

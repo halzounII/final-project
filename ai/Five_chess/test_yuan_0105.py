@@ -130,6 +130,70 @@ class RealBoard(object):                           # 棋盤
             self.next = BLACK
             return WHITE
 
+    def check_win(self, x, y, color):
+        
+        first = [[x-4, y-4], [x-4, y+4], [x-4, y], [x, y-4]]
+        count = 0
+        for j in range(4):
+            x = first[j][0]
+            y = first[j][1]
+            if j == 0:
+                for i in range(9):
+                    if (x+i, y+i) in self.groups[color]:
+                        count += 1
+                        #print(count)
+                        if count == 5:
+                            return True
+                    else:
+                        count = 0
+            if j == 1:
+                for i in range(9):
+                    if (x+i, y-i) in self.groups[color]:
+                        count += 1
+                       # print(count)
+                        if count == 5:
+                            return True
+                    else:
+                        count = 0
+            if j == 2:
+                for i in range(9):
+                    if (x+i, y) in self.groups[color]:
+                        count += 1
+                        #print(count)
+                        if count == 5:
+                            return True
+                    else:
+                        count = 0
+            if j == 3:
+                for i in range(9):
+                    if (x, y+i) in self.groups[color]:
+                        count += 1
+                        #print(count)
+                        if count == 5:
+                            return True
+                    else:
+                        count = 0
+            
+        return False
+
+    def win(self, color):
+        font = pg.font.Font("D:/Users/sab93/Desktop/python/final-project/ai/Five_chess/msjh.ttc", 50)
+        if color == BLACK:
+            text = font.render("你贏了 蒸蚌", True, (0,0,255), (255,255,255))
+            screen.blit(text, (200,250))
+        else:
+            text = font.render("哈哈哈哈哈", True, (0,0,255), (255,255,255))
+            screen.blit(text, (200,250))
+        pg.display.update()
+        paused()
+
+def paused():
+    while True:
+        for _event in pg.event.get():
+            print(_event)
+            if _event.type == pg.QUIT:
+                pg.quit()
+
     #def auto_draw(self, x, y):
     #    print(x, y)
     #    added_stone = Stone(rboard, (x, y), rboard.turn())
@@ -192,6 +256,9 @@ def GUI():
                         hum_stone = Stone(rboard, (x, y), rboard.turn())
                         Stones.append(hum_stone)
                         hum_stone.draw()                       # 玩家下(先手 黑 )
+                        if rboard.check_win(x,y, BLACK):
+                            rboard.win(BLACK)
+                            
                         board.put(P.hum, playersScore(y-1,x-1))
                         s_hit.play()
 
@@ -201,6 +268,9 @@ def GUI():
                             com_stone = Stone(rboard, (b+1, a+1), rboard.turn())
                             Stones.append(com_stone)
                             com_stone.draw()
+                            if rboard.check_win(b+1,a+1, WHITE):
+                                rboard.win(WHITE)
+                                
                     else: 
                         screen.blit(font.render("該位置已有棋子存在!", True, (255,0,0), (224, 224, 80)), (200,650))
                         display.update()

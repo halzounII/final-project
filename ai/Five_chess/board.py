@@ -14,7 +14,7 @@ import config
 def matrix(size: int = 15) -> list:
     return [[0 for i in range(size)] for j in range(size)]
 
-def fixScore(Type: int) -> int:  # prevent b
+def fixScore(Type: int) -> int: # 避免無謂衝四
     if s.blocked_four <= Type < s.four:
         if s.blocked_four <= Type < (s.blocked_four + s.three): return s.three     # 單死四
         elif (s.blocked_four + s.three) <= Type < s.blocked_four*2: return s.four  # 死四活三
@@ -46,7 +46,7 @@ class Board:
         self.evaluateCache = {}   # redundant?
         self.currentSteps = []    #當前的那一步，元素是playersScore()
         self.allSteps = []   # all chess pieces put by both sides, 元素是playersScore(), used in ai.py
-        self.stepsTail = []  #backward(悔棋)後保留的先前棋步
+        self.stepsTail = []  #悔棋後保留的先前棋步
         self._last = [False,False]
         self.count = 0       #手數
         self.z = z
@@ -99,12 +99,12 @@ class Board:
         radius = 4                     #更新的距離半徑(遠於五格者不受影響)
         def update(x, y, direction):
             player = self.board[x][y]
-            if player != P.reverse(P.com):        #??
-                self.comScore[x][y] += scorePoint(self, x, y, P.com, direction)
+            if player != P.reverse(P.com):
+                self.comScore[x][y] = scorePoint(self, x, y, P.com, direction)
                 pass #statistics
             else: self.comScore[x][y] = 0
-            if player != P.reverse(P.hum):       #??
-                self.humScore[x][y] += scorePoint(self, x, y, P.hum, direction)
+            if player != P.reverse(P.hum):
+                self.humScore[x][y] = scorePoint(self, x, y, P.hum, direction)
                 pass #statistics
             else: self.humScore[x][y] = 0
         pass # optimization(optional)
@@ -131,24 +131,26 @@ class Board:
 
     
     def put(self, player: int, place = playersScore()) -> None:
-        if player == 0: player = 2 #遇到bug
-        #if config.debug: print(f'put[{place}] {player}')
+        if self.board[place.pos[0]][place.pos[1]] != 0: return  #該位置已經有棋
+        place.player = player
+        if config.debug: print(f'put[{place.pos}] {player}')
         self.board[place.pos[0]][place.pos[1]] = player
         self.z.go(place.pos[0], place.pos[1], player) #執行zobrist運算，產生棋型代碼
         self.allSteps.append(place)   #把此步加到所有步數裡
         self.currentSteps.append(place)
-        #self.stepsTail = []  #棋局往另一方向發展，不再保留先前棋步
         self.updateScore(place)
         self.count += 1
         print(f'put {place.pos},{player}, {self.currentSteps}')
 
     def remove(self, place = playersScore()) -> None:
+        if self.board[place.pos[0]][place.pos[1]] == 0: return  #該位置沒棋
+        if place.player == 0: raise ValueError('remove P.empty')
         self.z.go(place.pos[0], place.pos[1], self.board[place.pos[0]][place.pos[1]])
-        # debug
-        self.updateScore(place)
+        if config.debug: print(f'remove{place.pos} {place.player}')
+        self.board[place.pos[0]][place.pos[1]] = P.empty
         self.allSteps.pop()
         if self.currentSteps != []: self.currentSteps.pop()
-        self.board[place.pos[0]][place.pos[1]] = P.empty
+        self.updateScore(place)
         self.count -= 1
 
     def backward(self):
@@ -188,35 +190,35 @@ class Board:
         attackPoints = []
         defendPoints = []
         if starSpread and config.star: # config.py
-            i = len(self.currentSteps) - 1  
+            i = len(self.allSteps) - 1  
             while i >= 0:
-                place = self.currentSteps[i]  #某一方的棋步
+                place = self.allSteps[i]  #某一方的棋步
                 if (P.reverse(player) == P.com and place.scoreCom >= s.three)\
                     or (P.reverse(player) == P.hum and place.scoreHum >= s.three): 
                     #對方的防守點
                     defendPoints.append(place); break  #表示對方該子在防守
                 i -= 2 # 上一步
-            j = len(self.currentSteps) - 2
+            j = len(self.allSteps) - 2
             while j >= 0:
-                place = self.currentSteps[i]
+                place = self.allSteps[i]
                 if (player == P.com and place.scoreCom >= s.three) \
                     or (player == P.hum and place.scoreHum >= s.three):
                     #己方的防守點
                     attackPoints.append(place); break  #表示己方該子在進攻
                 j -= 2
             #若沒有進攻/防守點，則設為首步
-            if len(self.currentSteps) >= 2: #needs debug    
+            if len(self.allSteps) >= 2: #needs debug    
                 if not len(attackPoints): 
-                    attackPoints.append(self.currentSteps[0] if self.currentSteps[0].player == player else self.currentSteps[1])
+                    attackPoints.append(self.allSteps[0] if self.allSteps[0].player == player else self.allSteps[1])
                 if not len(defendPoints):
-                    defendPoints.append(self.currentSteps[0] if self.currentSteps[0].player == P.reverse(player) else self.currentSteps[1])
+                    defendPoints.append(self.allSteps[0] if self.allSteps[0].player == P.reverse(player) else self.allSteps[1])
         for i in range(self.size):
             for j in range(self.size):
                 if self.board[i][j] == P.empty:
                     if len(self.allSteps) < 6:
                      #總手數小於6(雙方皆不可能成三)，若周圍沒棋就跳過
-                        if not self.hasNeighbor(i, j, 1, 1): continue #??
-                    elif not self.hasNeighbor(i, j, 2, 2): continue   #??
+                        if not self.hasNeighbor(i, j, 1, 1): continue
+                    elif not self.hasNeighbor(i, j, 2, 2): continue
                    #5*5內沒棋也跳過(不可能有連棋)
                     place = playersScore(i, j)    # replace p of place
                     place.scoreHum = self.humScore[i][j]
@@ -240,15 +242,24 @@ class Board:
                     elif place.scoreHum >= s.two: hum_twos.appendleft(place)
                     else: neighbors.append(place) # 沒有連棋，而周圍有對手棋 
                     
-        if len(fives): return fives   #有連五，先返回
-        elif player == P.com and len(com_fours): return com_fours  #自己可活四就先活四
-        elif player == P.hum and len(hum_fours): return hum_fours  #否則防守對方活四
-        elif player == P.com and len(hum_fours) and not len(com_blockedfours): return hum_fours
-        elif player == P.hum and len(com_fours) and not len(hum_blockedfours): return com_fours
+        if len(fives): 
+            if config.gen: print(f'fives: {fives[0].pos}',)
+            return fives   #有連五，先返回
+        elif player == P.com and len(com_fours): 
+            if config.gen: print(f'com_fours: {com_fours[0].pos}')
+            return com_fours  #自己可活四就先活四
+        elif player == P.hum and len(hum_fours): 
+            if config.gen: print(f'hum_fours: {hum_fours[0].pos}')
+            return hum_fours  #否則防守對方活四
+        elif player == P.com and len(hum_fours) and not len(com_blockedfours): #print('def_hum_fours')
+            return hum_fours
+        elif player == P.hum and len(com_fours) and not len(hum_blockedfours): #print('def_com_fours')
+            return com_fours
         #對面有活四，自己有死四
         fours = com_fours + hum_fours if player == P.com else hum_fours + com_fours
         blockedfours = com_blockedfours + hum_blockedfours if player == P.hum else hum_blockedfours + com_blockedfours
-        if len(fours): return fours + blockedfours 
+        if len(fours): #print('blockedfours')
+            return fours + blockedfours 
         #自己的活四點先排前面(這裡理應沒有)，再排對方活四點，再排自己與對方死四點
         if player == P.com:  #先雙三，再死四，再活三
             result = com_doublethrees + hum_doublethrees + com_blockedfours + hum_blockedfours + com_threes + hum_threes

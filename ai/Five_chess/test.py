@@ -17,7 +17,6 @@ BOARD_SIZE = (820, 820)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
-
 class Stone(object):                           # 棋子
     def __init__(self, rboard, point, color):
         """Create and initialize a stone.
@@ -42,7 +41,7 @@ class Stone(object):                           # 棋子
     def remove(self):                                                     # 移除(悔棋)
         """Remove the stone from board."""
         blit_coords = (self.coords[0] - 20, self.coords[1] - 20)
-        area_rect = pg.Rect(blit_coords, (40, 40))
+        area_rect = Rect(blit_coords, (40, 40))
         screen.blit(background, blit_coords, area_rect)
         pg.display.update()
         #self.group.stones.remove(self)
@@ -74,7 +73,7 @@ class RealBoard(object):                           # 棋盤
         self.outline.inflate_ip(20, 20)            #原地放大縮小 用處??
         for i in range(14):
             for j in range(14):
-                rect = pg.Rect(45 + (40 * i), 45 + (40 * j), 40, 40)
+                rect = Rect(45 + (40 * i), 45 + (40 * j), 40, 40)
                 pg.draw.rect(background, BLACK, rect, 1)
         for i in range(2):
             for j in range(2):
@@ -166,12 +165,12 @@ class RealBoard(object):                           # 棋盤
         stone = rboard.search(point=(x, y))
         print(stone)
         if not stone:
-            preview = pg.Rect([x, y, 20, 20])           
+            preview = Rect([x, y, 20, 20])           
             pg.draw.rect(screen, RED, preview, 1)
             pg.display.update()
             pg.time.wait(30)
             blit_coords = (x , y )
-            area_rect = pg.Rect(blit_coords, (20, 20))
+            area_rect = Rect(blit_coords, (20, 20))
             screen.blit(background, blit_coords, area_rect)
             pg.display.update()
 
@@ -211,7 +210,7 @@ def GUI():
             elif event.type == QUIT:
                 run = False
 
-            elif event.type == pg.MOUSEBUTTONDOWN:  # 下棋
+            elif event.type == MOUSEBUTTONDOWN:  # 下棋
                 if event.button == 1 and rboard.outline.collidepoint(event.pos):            
                     x = int(round(((event.pos[0] - 5) / 40.0), 0))
                     y = int(round(((event.pos[1] - 5) / 40.0), 0))

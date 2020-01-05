@@ -1,6 +1,6 @@
 from score import scores as s
 from score import players as P
-
+import config
 # TO DO:
     # 1. dir = 2 or 3 的 range() 參數
 def scorePoint(b, px: int, py: int, player: int, direction = None) -> int:
@@ -41,15 +41,14 @@ def scorePoint(b, px: int, py: int, player: int, direction = None) -> int:
             if t == player:
                 par['secondCount'] += 1      #有己方棋，加count
                 if par['empty'] != -1:       #??
-                    par['empty'] += 1; continue
+                    par['empty'] += 1
             else: par['block'] += 1; break   #有對手棋，加block
-            par['count'] += par['secondCount']
-        pass # omit scoreCache
+        if config.eval_point: print(f'{par}, 0')
         par['count'] += par['secondCount']
         b.scoreCache[player][0][px][py] = countToScore(par['count'], par['block'], par['empty'])
     result += b.scoreCache[player][0][px][py] # 把分數儲存在scoreCache裡
 
-    if (not direction) or direction == 0: 
+    if (not direction) or direction == 1: 
         reset()
         # 直行向上是否有棋
         for i in range(px+1,16):  # since px <= 14 
@@ -75,10 +74,9 @@ def scorePoint(b, px: int, py: int, player: int, direction = None) -> int:
             if t == player:
                 par['secondCount'] += 1      #有己方棋，加count
                 if par['empty'] != -1:       #??
-                    par['empty'] += 1; continue
+                    par['empty'] += 1
             else: par['block'] += 1; break   #有對手棋，加block
-            par['count'] += par['secondCount']
-        pass # omit scoreCache
+        if config.eval_point: print(f'{par}, 1')
         par['count'] += par['secondCount']
         b.scoreCache[player][1][px][py] = countToScore(par['count'], par['block'], par['empty'])
     result += b.scoreCache[player][1][px][py]
@@ -93,9 +91,9 @@ def scorePoint(b, px: int, py: int, player: int, direction = None) -> int:
             if t == P.empty:
                 if par['empty'] == -1 and px+i < size-1 and py+i < size-1:
                     if board[px+i+1][py+i+1] == player: par['empty'] = par['count']; continue
-                else: break
+                break
             if t == player:
-                par['count'] += 1; continue
+                par['count'] += 1
             else: par['block'] += 1; break
         #左上是否有棋
         for i in range(1,16):
@@ -104,49 +102,55 @@ def scorePoint(b, px: int, py: int, player: int, direction = None) -> int:
             t = board[px-i][py-i]
             if t == P.empty:
                 if par['empty'] == -1 and px-i > 0 and py-i > 0:
-                    if board[px-i-1][py-i-1] == player: par['empty'] = 0; continue
-                else: break
+                    if board[px-i-1][py-i-1] == player: par['empty'] = 0;continue
+                break
             if t == player:
                 par['secondCount'] += 1
                 if par['empty'] != -1:
-                    par['empty'] += 1; continue
+                    par['empty'] += 1
             else: par['block'] += 1; break
-            par['count'] += par['secondCount']
-            pass # omit scoreCache
+        if config.eval_point: print(f'{par}, 2')
         par['count'] += par['secondCount']
         b.scoreCache[player][2][px][py] = countToScore(par['count'], par['block'], par['empty'])
     result += b.scoreCache[player][2][px][py]
 
     if  (not direction) or direction == 3:
         reset()
-        #右上是否有棋
+        #左下是否有棋
         for i in range(1,16):
-            if px+i < 0 or py-i < 0 or px+i >= size or py-i >= size:
+            if py-i < 0 or px+i >= size:
                 par['block'] += 1; break
             t = board[px+i][py-i]
             if t == P.empty:
                 if par['empty'] == -1 and px+i < size-1 and 0 < py-i:
-                    if board[px+i+1][py-i-1] == player: par['empty'] = par['count']; continue
-                else: break
+                    if board[px+i+1][py-i-1] == player: par['empty'] = par['count'];continue
+                if config.eval_point: print(f'{i},左下 empty')
+                break
             if t == player:
-                par['count'] += 1; continue
-            else: par['block'] += 1; break
-        #左下是否有棋
+                par['count'] += 1
+            else: 
+                par['block'] += 1
+                if config.eval_point: print(f'{i},左下 block')
+                break
+        #右上是否有棋
         for i in range(1,16): #check range 
-            if px-i < 0 or py+i < 0 or px-i >= size or py+i >= size:
+            if px-i < 0 or py+i >= size:
                 par['block'] += 1; break
             t = board[px-i][py+i]
             if t == P.empty:
                 if par['empty'] == -1 and 0 < px-i and py+i < size-1:
-                    if board[px-i-1][py+i+1] == player: par['empty'] = 0; continue
-                else: break
+                    if board[px-i-1][py+i+1] == player: par['empty'] = 0;continue
+                if config.eval_point: print(f'{i}, 右上 empty')
+                break
             if t == player:
                 par['secondCount'] += 1
                 if par['empty'] != -1:
-                    par['empty'] += 1; continue
-            else: par['block'] += 1; break
-            par['count'] += par['secondCount']
-            pass # omit scoreCache
+                    par['empty'] += 1
+            else: 
+                par['block'] += 1
+                if config.eval_point: print(f'{i}, 右上 block')
+                break
+        if config.eval_point: print(f'{par}, 3')
         par['count'] += par['secondCount']
         b.scoreCache[player][3][px][py] = countToScore(par['count'], par['block'], par['empty'])
     result += b.scoreCache[player][3][px][py]
@@ -166,11 +170,11 @@ def countToScore(count: int, block: int, empty: int = 0) -> int:
             elif count == 4: return s.blocked_four
     elif empty == 1 or empty == count - 1:  #最後一子前方有空格
         if count >= 6: return s.five        # 5 + blank + 1
-        elif block == 0:
-            if count == 2: return s.two/2   # 間二
-            elif count == 3: return s.three
-            elif count == 4: return s.blocked_four
-            elif count == 5: return s.four
+        elif block == 0: 
+            if count == 2: return s.two * 0.5   # 間二
+            elif count == 3: return s.three * 0.7  
+            elif count == 4: return s.blocked_four * 0.7
+            elif count == 5: return s.four * 0.7
         elif block == 1:
             if count == 2: return s.blocked_two
             elif count == 3: return s.blocked_three
@@ -179,29 +183,28 @@ def countToScore(count: int, block: int, empty: int = 0) -> int:
     elif empty == 2 or empty == count - 2:   #倒數第二子前方有空格
         if count >= 7: return s.five       # 5 + blank + 2
         elif block == 0:                   # 評分需要修正
-            if count == 3: return s.blocked_three
-            elif count == 4: return s.three
+            if count == 3: return s.three * 0.7
+            elif count == 4: return s.blocked_four * 0.7
             elif count == 5: return s.blocked_four
             elif count == 6: return s.four
         elif block == 1:
-            if count == 3: return s.blocked_three
-            elif count == 4: return s.blocked_four
-            elif count == 5: return s.blocked_four
+            if count == 3: return s.blocked_three * 0.7
+            elif count == 4: return s.blocked_four * 0.5
+            elif count == 5: return s.blocked_four * 0.7
             elif count == 6: return s.four
         elif block == 2:
-            if count == 6: return s.blocked_four
+            if count == 6: return s.blocked_four * 0.5
     elif empty == 3 or empty == count - 3:
         if count >= 8: return s.five
         elif block == 0:
             if count == 5: return s.three
             elif count == 6: return s.blocked_four
-            elif count == 7: return s.four
+            elif count == 7: return s.four * 1.2
         elif block == 1:
             if count == 6: return s.blocked_four
             elif count == 7: return s.four
         elif block == 2:
-            if count == 6: return s.blocked_four
-            elif count == 7: return s.blocked_four
+            if count == 7: return s.blocked_four
     elif empty == 4 or empty == count - 4:
         if count >= 9: return s.five
         elif block == 0:

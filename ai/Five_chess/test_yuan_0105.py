@@ -43,8 +43,10 @@ class Stone(object):                           # 棋子
         """Remove the stone from board."""
         blit_coords = (self.coords[0] - 20, self.coords[1] - 20)
         area_rect = Rect(blit_coords, (40, 40))
-        screen.blit(background, blit_coords, area_rect)
-        background.blit(background_org, (0, 0))
+        background.blit(background_org, blit_coords, area_rect)
+        screen.blit(background, (0, 0))
+        # screen.blit(background, blit_coords, area_rect)
+        # background.blit(background_org, (0, 0))
         display.update()
         #self.group.stones.remove(self)
         del self
@@ -110,7 +112,7 @@ class RealBoard(object):                           # 棋盤
         y = int(round(((pos[1] - 25) / 40.0), 0))*40+15
         stone = rboard.search(point=(x, y), redRect = True)
         #print(stone)
-        if not stone and (45<=x<=605) and (65<=y<=625):
+        if not stone and (25<=x<=625) and (45<=y<=645):
             preview = Rect([x, y, 20, 20])           
             draw.rect(screen, RED, preview, 1)
             display.update()

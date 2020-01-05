@@ -12,11 +12,13 @@ from board import board, playersScore
 from score import players as P
 from os import getcwd
 import pygame as pg
+import config
 BACKGROUND = getcwd().replace('\\', '/') + '/ramin.jpg'# 棋盤圖 from github
 BOARD_SIZE = (820, 820)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
+Stones = []
 class Stone(object):                           # 棋子
     def __init__(self, rboard, point, color = None):
         """Create and initialize a stone.
@@ -46,13 +48,11 @@ class Stone(object):                           # 棋子
         background.blit(background_org, blit_coords, area_rect)
         screen.blit(background, (0, 0))
         # screen.blit(background, blit_coords, area_rect)
-        # background.blit(background_org, (0, 0))
         display.update()
         #self.group.stones.remove(self)
         del self
 
 
-        
 class RealBoard(object):                           # 棋盤
     def __init__(self):
         """Create and initialize an empty board."""
@@ -97,14 +97,13 @@ class RealBoard(object):                           # 棋盤
         points -- a list of points to be searched
         """
 
-        if point in self.groups[WHITE] or point in self.groups[BLACK] :
-            return True
-        elif not redRect:
+        for i in Stones:
+            if point == i.point: return True
+        if not redRect:
             self.groups[self.next].append(point)
             print(f"黑棋位置{self.groups[0,0,0]}\n白棋位置{self.groups[(255,255,255)]}")
             return False
-
-    
+ 
     @staticmethod    
     def Preview():
         pos = mouse.get_pos()
@@ -131,11 +130,10 @@ class RealBoard(object):                           # 棋盤
             self.next = BLACK
             return WHITE
 
-    def auto_draw(self, x, y):
-
-        print(x, y)
-        added_stone = Stone(rboard, (x, y), rboard.turn())
-        added_stone.draw()
+    #def auto_draw(self, x, y):
+    #    print(x, y)
+    #    added_stone = Stone(rboard, (x, y), rboard.turn())
+    #    added_stone.draw()
         
 def GUI():
     s_hit = pg.mixer.Sound('Wate.wav')  #括弧為音檔名稱 
@@ -191,31 +189,35 @@ def GUI():
                     stone = rboard.search(point=(x, y))
 
                     if not stone :
-                        added_stone = Stone(rboard, (x, y), rboard.turn())
-                        added_stone.draw()                       # 玩家下(先手 黑 )
+                        hum_stone = Stone(rboard, (x, y), rboard.turn())
+                        Stones.append(hum_stone)
+                        hum_stone.draw()                       # 玩家下(先手 黑 )
                         board.put(P.hum, playersScore(y-1,x-1))
                         s_hit.play()
 
                         a, b = tuple(ai.begin().pos)
                         start_ticks=pg.time.get_ticks() #AI下完棋後, 將目前的時間記錄下來, 單位是毫秒                   
                         if not rboard.search(point=(b+1,a+1)):   # 有時會沒下到(可能重複下) 擋活三死四時發生
-                            #rboard.auto_draw(b+1,a+1)                    # 電腦下
-                            added_stone = Stone(rboard, (b+1, a+1), rboard.turn())
-                            added_stone.draw()
+                            com_stone = Stone(rboard, (b+1, a+1), rboard.turn())
+                            Stones.append(com_stone)
+                            com_stone.draw()
+                    else: 
+                        screen.blit(font.render("該位置已有棋子存在!", True, (255,0,0), (224, 224, 80)), (200,650))
+                        display.update()
+                        time.wait(500)
+                        screen.blit(background, (0, 0))
+                        display.update()
                 elif _event.button == 1 and rboard.regret.collidepoint(_event.pos):
-                   
                     if rboard.groups[(255, 255, 255)] and rboard.groups[(0, 0, 0)]: 
-                        print("悔棋")
+                        if config.log:print("悔棋")
                         start_ticks=pg.time.get_ticks()
-                        removed_b = Stone(rboard, (board.allSteps[-1].pos[1]+1, board.allSteps[-1].pos[0]+1))
-                        if removed_b: removed_b.remove(); print(removed_b.point)
-                        removed_w = Stone(rboard, (board.allSteps[-2].pos[1]+1, board.allSteps[-2].pos[0]+1))
-                        if removed_w:
-                            removed_w.remove(); print(removed_w.point)
-                        ai.backward() 
-                        #screen.blit(background,(0,0))                   
+                        #removed_b = Stone(rboard, (board.allSteps[-1].pos[1]+1, board.allSteps[-1].pos[0]+1))
+                        Stones.pop().remove()
+                        #removed_w = Stone(rboard, (board.allSteps[-2].pos[1]+1, board.allSteps[-2].pos[0]+1))
+                        Stones.pop().remove()
+                        ai.backward()                  
                         s_hit.play()
-                        pg.time.wait(200)
+                        time.wait(200)
                     #board.update_liberties(added_stone)
     exit()
 

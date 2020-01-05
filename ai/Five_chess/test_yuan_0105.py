@@ -14,7 +14,10 @@ from os import getcwd
 import pygame as pg
 import config
 BACKGROUND = getcwd().replace('\\', '/') + '/ramin.jpg'# 棋盤圖 from github
-BOARD_SIZE = (820, 820)
+BTN1 = getcwd().replace('\\', '/') + '/regret0.png'
+BTN2 = getcwd().replace('\\', '/') + '/regret1.png'
+BTN_location = (650, 60)
+BOARD_SIZE = (820, 700)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
@@ -73,7 +76,7 @@ class RealBoard(object):                           # 棋盤
         board.
         """
         draw.rect(background, BLACK, self.outline, 3)
-        draw.rect(background, BLACK, self.regret, 3)
+        #draw.rect(background, BLACK, self.regret, 3)
         # Outline is inflated here for future use as a collidebox for the mouse
         self.outline.inflate_ip(20, 20)            #原地放大縮小 用處??
         for i in range(14):
@@ -85,6 +88,7 @@ class RealBoard(object):                           # 棋盤
                 coords = (165 + (320 * i), 185 + (320 * j))
                 draw.circle(background, BLACK, coords, 5, 0)
         screen.blit(background, (0, 0))                                 # 重繪視窗
+        background.blit(btn[0], BTN_location)                                  # 畫按鈕
         display.update()                                             # 更新視窗
 
     def search(self, point=None, points=[], redRect = False):
@@ -198,19 +202,19 @@ def paused():
     #    print(x, y)
     #    added_stone = Stone(rboard, (x, y), rboard.turn())
     #    added_stone.draw()
+#def adjust_window():
+
         
 def GUI():
     s_hit = pg.mixer.Sound('Wate.wav')  #括弧為音檔名稱 
     s_hit.set_volume(0.7)  #設定音量大小，參值0~1 
     #window = pg.display.set_mode((900,900))     # 建視窗
     run = True
-    #rboard.search(point=(8, 8))
-    #added_stone = Stone(rboard, (8, 8), rboard.turn())
-    #added_stone.draw()
     font = pg.font.Font("msjhbd.ttc", 28)
-    regret_str = font.render('悔棋', True, (255,0,0), (224,224,80))
-    background.blit(regret_str, (670,80))
+    #regret_str = font.render('悔棋', True, (255,0,0), (224,224,80))
+    #background.blit(regret_str, (670,80))
     screen.blit(background,(0,0))
+    background.blit(btn[0], BTN_location)                                  # 畫按鈕
     pg.display.update()
     #regret_outline  = pg.Rect(625, 65, 150 ,75)
     start_ticks=pg.time.get_ticks() #將目前的時間記錄下來, 單位是毫秒
@@ -277,6 +281,7 @@ def GUI():
                         time.wait(500)
                         screen.blit(background, (0, 0))
                         display.update()
+                '''
                 elif _event.button == 1 and rboard.regret.collidepoint(_event.pos):
                     if rboard.groups[(255, 255, 255)] and rboard.groups[(0, 0, 0)]: 
                         if config.log:print("悔棋")
@@ -289,6 +294,23 @@ def GUI():
                         s_hit.play()
                         time.wait(200)
                     #board.update_liberties(added_stone)
+                '''
+                if _event.button == 1 and btn_rect.collidepoint(_event.pos):
+                    if rboard.groups[(255, 255, 255)] and rboard.groups[(0, 0, 0)]: 
+                        # 按下動畫
+                        screen.blit(btn[1], BTN_location)
+                        pg.display.update()
+                        pg.time.wait(150)
+                        screen.blit(btn[0], BTN_location)
+                        pg.display.update()
+                        # 動作
+                        ai.backward()
+                        s_hit.play()
+                        removed_w = Stone(rboard, (rboard.groups[(255, 255, 255)].pop()), WHITE )
+                        removed_w.remove()
+                        removed_b = Stone(rboard, (rboard.groups[(0, 0, 0)].pop()), BLACK )
+                        removed_b.remove()
+                
     exit()
 
 def Setting():  #難度設定
@@ -353,10 +375,12 @@ def Setting():  #難度設定
     
 if __name__ == '__main__':
     init()
-    display.set_caption('Goban')
-    screen = display.set_mode(BOARD_SIZE, 0, 32)
+    display.set_caption('拜託不要當我')
+    screen = display.set_mode(BOARD_SIZE, pg.RESIZABLE, 32)
     background = image.load(BACKGROUND).convert()
     background_org = image.load(BACKGROUND).convert()
+    btn = [pg.image.load(BTN1).convert_alpha(), pg.image.load(BTN2).convert_alpha()] # 按鈕圖
+    btn_rect = btn[0].get_rect(topleft=BTN_location)  # 獲取矩形區域
     rboard = RealBoard()
     searchDeep=Setting()     # 執行難度設定, 並回傳難度值 (1~3)
     print("Level",searchDeep)

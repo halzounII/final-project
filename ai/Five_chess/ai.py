@@ -19,7 +19,6 @@ class AI:
         else: p = deepAll(deep = config.searchDeep)  #遞迴
         if board.board[p.pos[0]][p.pos[1]] == P.empty:
             board.put(P.com, p)
-            #board.initScore()  #重新評估局面情勢
             print(board)
             return p
         else: return

@@ -4,7 +4,7 @@ Created on Tue Dec 17 17:36:16 2019
 
 @author: sab93
 """
-
+import threading as thr
 from pygame import draw, display, Rect, mouse, event, time, init, image
 from pygame.locals import K_ESCAPE, KEYDOWN, MOUSEBUTTONDOWN, QUIT
 from ai import ai
@@ -13,11 +13,17 @@ from score import players as P
 from os import getcwd
 import pygame as pg
 import config
+from win import w
 BACKGROUND = getcwd().replace('\\', '/') + '/ramin.jpg'# 棋盤圖 from github
 BTN1 = getcwd().replace('\\', '/') + '/regret0.png'
 BTN2 = getcwd().replace('\\', '/') + '/regret1.png'
 BTN3 = getcwd().replace('\\', '/') + '/recover0.png'
 BTN4 = getcwd().replace('\\', '/') + '/recover1.png'
+HOURGLASS = [getcwd().replace('\\', '/') + '/hourglass0.png',\
+            getcwd().replace('\\', '/') + '/hourglass1.png',\
+            getcwd().replace('\\', '/') + '/hourglass2.png',\
+            getcwd().replace('\\', '/') + '/hourglass3.png']
+HOURGLASS_location = (670, 600)
 BTN_location = (650, 60)
 BTN_location_1 = (650, 150)
 BOARD_SIZE = (820, 700)
@@ -25,6 +31,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 Stones = []
+
 class Stone(object):                           # 棋子
     def __init__(self, rboard, point, color = None):
         """Create and initialize a stone.
@@ -173,38 +180,48 @@ class RealBoard(object):                           # 棋盤
         return False
 
     def win(self, color):
-        print('end----------------------------------------------------------------------------')
         font = pg.font.Font(getcwd().replace('\\', '/') + "/msjhbd.ttc", 40)
         if color == BLACK:
             text = font.render("你贏了", True, (0,0,255), (224,224,80))
-            screen.blit(text, (250,650))
+            screen.blit(text, (250,630))
         else:
             text = font.render("你輸了", True, (255,0,0), (224,224,80))
-            screen.blit(text, (250,650))
-        display.update()
-        time.wait(3000)
-        
+            screen.blit(text, (250,630))
+        pg.display.update()
+        pg.time.wait(3000)
+
+def animation():
+    n = len(Stones)
+    i = 0
+    while i < 4:
+        screen.blit(hourglasses[i], HOURGLASS_location)
+        pg.display.update()
+        i += 1
+        if i == 4: i = 0
+        pg.time.wait(250)
+        screen.blit(background, (0,0))
+        pg.display.update()
+        if len(Stones) - n == 1: break
+
 def GUI():
     s_hit = pg.mixer.Sound('Wate.wav')  #括弧為音檔名稱 
     s_hit.set_volume(0.7)  #設定音量大小，參值0~1 
     #window = pg.display.set_mode((900,900))     # 建視窗
     run = True
     font = pg.font.Font("msjhbd.ttc", 28)
-    #background.blit(regret_str, (670,80))
     screen.blit(background,(0,0))
     background.blit(btn[0], BTN_location)                                  # 畫按鈕
     background.blit(btn[2], BTN_location_1)
     pg.display.update()
-    #regret_outline  = pg.Rect(625, 65, 150 ,75)
     start_ticks=pg.time.get_ticks() #將目前的時間記錄下來, 單位是毫秒
     rboard.next = BLACK
     while run:
 
-        T_count = 30 - (pg.time.get_ticks()-start_ticks)/1000  #倒數20秒 兩個時間差, 單位是毫秒
+        T_count = 30 - (pg.time.get_ticks()-start_ticks)/1000  #倒數30秒 兩個時間差, 單位是毫秒
         if T_count < 0:
             count_time = font.render('時間到了!', True, (255,0,0), (000,255,255)) 
             screen.blit(count_time, (345,0))
-            pg.display.update()
+            display.update()
             s_kill = pg.mixer.Sound('kill.wav')  #括弧為音檔名稱 
             s_kill.set_volume(0.7)  #設定音量大小，參值0~1
             s_kill.play() 
@@ -213,7 +230,7 @@ def GUI():
             screen.blit(count_time, (345,0))
             pg.display.update()
             pg.time.wait(1500)
-            quit()
+            return
         else:
             count_time_str = f'{T_count:04.1f}'
             count_time = font.render(count_time_str, True, (0,0,255), (224,224,80)) 
@@ -239,21 +256,26 @@ def GUI():
                         hum_stone = Stone(rboard, (x, y), rboard.turn())
                         Stones.append(hum_stone)
                         hum_stone.draw()                       # 玩家下(先手 黑 )
-                        if rboard.check_win(x,y, BLACK):
+                        if rboard.check_win(x, y, BLACK):
                             rboard.win(BLACK)
                             return
-                        board.put(P.hum, playersScore(y-1,x-1))
-                        s_hit.play()
+                        else: 
+                            board.put(P.hum, playersScore(y-1,x-1))
+                            s_hit.play()
 
-                        a, b = tuple(ai.begin().pos)
+                        ani = thr.Thread(target = animation)
+                        ani.start()
+                        a, b = ai.begin().pos
+                        del ani
                         start_ticks=pg.time.get_ticks() #AI下完棋後, 將目前的時間記錄下來, 單位是毫秒                   
                         if not rboard.search(point=(b+1,a+1)):   # 有時會沒下到(可能重複下) 擋活三死四時發生
                             com_stone = Stone(rboard, (b+1, a+1), rboard.turn())
                             Stones.append(com_stone)
                             com_stone.draw()
-                            if rboard.check_win(b+1,a+1, WHITE):
-                                rboard.win(WHITE)
-                                return
+                            time.wait(500)
+                        if rboard.check_win(b+1, a+1, WHITE):
+                            rboard.win(WHITE)
+                            return
                                 
                     else: 
                         screen.blit(font.render("該位置已有棋子存在!", True, (255,0,0), (224, 224, 80)), (200,650))
@@ -274,7 +296,6 @@ def GUI():
                         start_ticks=pg.time.get_ticks()
                         rboard.res[(255, 255, 255)].append(rboard.groups[(255, 255, 255)].pop())
                         rboard.res[(0, 0, 0)].append(rboard.groups[(0, 0, 0)].pop())
-                        #removed_b = Stone(rboard, (board.allSteps[-1].pos[1]+1, board.allSteps[-1].pos[0]+1))
                         Stones.pop().remove()
                         Stones.pop().remove()
                         ai.backward()                  
@@ -309,19 +330,7 @@ def GUI():
                         ai.forward()                  
                         s_hit.play()
                         time.wait(200)
-                '''
-                elif _event.button == 1 and rboard.regret.collidepoint(_event.pos):
-                    if rboard.groups[(255, 255, 255)] and rboard.groups[(0, 0, 0)]: 
-                        if config.log: print("悔棋")
-                        start_ticks=pg.time.get_ticks()
-                        Stones.pop().remove()
-                        Stones.pop().remove()
-                        ai.backward()                  
-                        s_hit.play()
-                        time.wait(200)
-                '''               
     exit()
-
 def Setting():  #難度設定
     font = pg.font.Font(getcwd().replace('\\','/') + '/msjhbd.ttc', 28) 
     text_G = font.render("繼續玩五子棋?", True, (0,0,255), (224,224,80)) 
@@ -392,6 +401,7 @@ if __name__ == '__main__':
     background = image.load(BACKGROUND).convert()
     background_org = image.load(BACKGROUND).convert()
     btn = [pg.image.load(BTN1).convert_alpha(), pg.image.load(BTN2).convert_alpha(), pg.image.load(BTN3).convert_alpha(), pg.image.load(BTN4).convert_alpha()] # 按鈕圖
+    hourglasses = [pg.image.load(i) for i in HOURGLASS]
     regret_rect = btn[0].get_rect(topleft=BTN_location)  # 獲取矩形區域
     recover_rect = btn[2].get_rect(topleft=BTN_location_1)  # 獲取矩形區域
     rboard = RealBoard()
@@ -400,3 +410,4 @@ if __name__ == '__main__':
         print("Level",searchDeep)
         GUI()
         board.reset()
+    #<div>Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>

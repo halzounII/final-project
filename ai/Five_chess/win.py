@@ -43,9 +43,9 @@ def Fives(board, player, place = playersScore())-> int:
 def w(board):
     d = 0
     for i in range(board.size):
-            for j in range(len(board[i])):
+            for j in range(len(board.board[i])):
                 if i != d and j != d:
-                    t = board[i][j]
+                    t = board.board[i][j]
                     place = playersScore(i, j)
                     if t != P.empty:
                         d = Fives(board, t, place)

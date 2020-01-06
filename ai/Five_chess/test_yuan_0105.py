@@ -16,7 +16,10 @@ import config
 BACKGROUND = getcwd().replace('\\', '/') + '/ramin.jpg'# 棋盤圖 from github
 BTN1 = getcwd().replace('\\', '/') + '/regret0.png'
 BTN2 = getcwd().replace('\\', '/') + '/regret1.png'
+BTN3 = getcwd().replace('\\', '/') + '/recover0.png'
+BTN4 = getcwd().replace('\\', '/') + '/recover1.png'
 BTN_location = (650, 60)
+BTN_location_1 = (650, 150)
 BOARD_SIZE = (820, 700)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -60,7 +63,8 @@ class RealBoard(object):                           # 棋盤
     def __init__(self):
         """Create and initialize an empty board."""
         self.groups = {(0, 0, 0):[], (255, 255, 255):[]}
-        self.next = WHITE
+        self.res = {(0, 0, 0):[], (255, 255, 255):[]}
+        #self.next = WHITE
         self.outline = Rect(45, 65, 560, 560)   # (起始x y x長 y長 )
         self.regret = Rect(625, 65, 150 ,75)
         self.draw()
@@ -88,7 +92,8 @@ class RealBoard(object):                           # 棋盤
                 coords = (165 + (320 * i), 185 + (320 * j))
                 draw.circle(background, BLACK, coords, 5, 0)
         screen.blit(background, (0, 0))                                 # 重繪視窗
-        background.blit(btn[0], BTN_location)                                  # 畫按鈕
+        background.blit(btn[0], BTN_location)                           # 畫按鈕
+        background.blit(btn[2], BTN_location_1)
         display.update()                                             # 更新視窗
 
     def search(self, point=None, points=[], redRect = False):
@@ -181,7 +186,7 @@ class RealBoard(object):                           # 棋盤
         return False
 
     def win(self, color):
-        font = pg.font.Font("D:/Users/sab93/Desktop/python/final-project/ai/Five_chess/msjh.ttc", 50)
+        font = pg.font.Font("msjhbd.ttc", 50)
         if color == BLACK:
             text = font.render("你贏了", True, (0,0,255), (255,255,255))
             screen.blit(text, (200,250))
@@ -215,6 +220,7 @@ def GUI():
     #background.blit(regret_str, (670,80))
     screen.blit(background,(0,0))
     background.blit(btn[0], BTN_location)                                  # 畫按鈕
+    background.blit(btn[2], BTN_location_1)
     pg.display.update()
     #regret_outline  = pg.Rect(625, 65, 150 ,75)
     start_ticks=pg.time.get_ticks() #將目前的時間記錄下來, 單位是毫秒
@@ -282,7 +288,7 @@ def GUI():
                         screen.blit(background, (0, 0))
                         display.update()
 
-                elif _event.button == 1 and btn_rect.collidepoint(_event.pos):
+                elif _event.button == 1 and regret_rect.collidepoint(_event.pos):
                     if rboard.groups[(255, 255, 255)] and rboard.groups[(0, 0, 0)]: 
                         # 按下動畫
                         screen.blit(btn[1], BTN_location)
@@ -292,11 +298,42 @@ def GUI():
                         pg.display.update()
                         # 動作
                         start_ticks=pg.time.get_ticks()
+                        rboard.res[(255, 255, 255)].append(rboard.groups[(255, 255, 255)].pop())
+                        rboard.res[(0, 0, 0)].append(rboard.groups[(0, 0, 0)].pop())
                         #removed_b = Stone(rboard, (board.allSteps[-1].pos[1]+1, board.allSteps[-1].pos[0]+1))
                         Stones.pop().remove()
                         #removed_w = Stone(rboard, (board.allSteps[-2].pos[1]+1, board.allSteps[-2].pos[0]+1))
                         Stones.pop().remove()
                         ai.backward()                  
+                        s_hit.play()
+                        time.wait(200)
+                elif _event.button == 1 and recover_rect.collidepoint(_event.pos):
+                    if rboard.res[(255, 255, 255)] and rboard.res[(0, 0, 0)]: 
+                        # 按下動畫
+                        screen.blit(btn[3], BTN_location_1)
+                        pg.display.update()
+                        pg.time.wait(150)
+                        screen.blit(btn[2], BTN_location_1)
+                        pg.display.update()
+                        # 動作 (未完成)
+                        start_ticks=pg.time.get_ticks()
+                        # 把悔棋存的座標提出
+                        print(rboard.groups)
+                        next_b = rboard.res[(0, 0, 0)].pop()  
+                        next_w = rboard.res[(255, 255, 255)].pop()
+                        
+                        # 把棋子畫回棋盤
+                        hum_stone_b = Stone(rboard, next_b, rboard.turn())
+                        hum_stone_b.draw()
+                        hum_stone_w = Stone(rboard, next_w, rboard.turn())
+                        hum_stone_w.draw() 
+                        # 加回list
+                        rboard.groups[(0, 0, 0)].append(next_b)
+                        rboard.groups[(255, 255, 255)].append(next_w)
+                       # print(rboard.groups) 
+                        Stones.append(hum_stone_b)
+                        Stones.append(hum_stone_w)
+                        ai.forward()                  
                         s_hit.play()
                         time.wait(200)
                 '''
@@ -383,8 +420,9 @@ if __name__ == '__main__':
     screen = display.set_mode(BOARD_SIZE, pg.RESIZABLE, 32)
     background = image.load(BACKGROUND).convert()
     background_org = image.load(BACKGROUND).convert()
-    btn = [pg.image.load(BTN1).convert_alpha(), pg.image.load(BTN2).convert_alpha()] # 按鈕圖
-    btn_rect = btn[0].get_rect(topleft=BTN_location)  # 獲取矩形區域
+    btn = [pg.image.load(BTN1).convert_alpha(), pg.image.load(BTN2).convert_alpha(), pg.image.load(BTN3).convert_alpha(), pg.image.load(BTN4).convert_alpha()] # 按鈕圖
+    regret_rect = btn[0].get_rect(topleft=BTN_location)  # 獲取矩形區域
+    recover_rect = btn[2].get_rect(topleft=BTN_location_1)  # 獲取矩形區域
     rboard = RealBoard()
     searchDeep=Setting()     # 執行難度設定, 並回傳難度值 (1~3)
     print("Level",searchDeep)

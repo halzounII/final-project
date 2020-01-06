@@ -173,14 +173,15 @@ class RealBoard(object):                           # 棋盤
         return False
 
     def win(self, color):
+        print('end----------------------------------------------------------------------------')
         font = pg.font.Font(getcwd().replace('\\', '/') + "/msjhbd.ttc", 40)
         if color == BLACK:
             text = font.render("你贏了", True, (0,0,255), (224,224,80))
-            screen.blit(text, (250,700))
+            screen.blit(text, (250,650))
         else:
             text = font.render("你輸了", True, (255,0,0), (224,224,80))
-            screen.blit(text, (250,700))
-        pg.display.update()
+            screen.blit(text, (250,650))
+        display.update()
         time.wait(3000)
         
 def GUI():

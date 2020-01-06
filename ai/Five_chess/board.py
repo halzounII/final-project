@@ -47,7 +47,6 @@ class Board:
         self.currentSteps = []    #當前的那一步，元素是playersScore()
         self.allSteps = []   # all chess pieces put by both sides, 元素是playersScore(), used in ai.py
         self.stepsTail = []  #悔棋後保留的先前棋步
-        self._last = [False,False]
         self.count = 0       #手數
         self.z = z
         if size:       # accept only integer, not lists
@@ -60,6 +59,11 @@ class Board:
                 [matrix(size) for i in range(4)],  # for player 1 
                 [matrix(size) for j in range(4)]]  # for player 2  
         self.initScore()
+    def reset(self):
+        self.currentSteps, self.allSteps, self.stepsTail = [], [], []
+        self.count = 0
+        self.board = matrix(self.size)
+        self.comScore, self.humScore = matrix(self.size), matrix(self.size)
 
     def __str__(self):
         if self.size >= 0:

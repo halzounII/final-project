@@ -74,7 +74,6 @@ class RealBoard(object):                           # 棋盤
         board.
         """
         draw.rect(background, BLACK, self.outline, 3)
-        #draw.rect(background, BLACK, self.regret, 3)
         # Outline is inflated here for future use as a collidebox for the mouse
         self.outline.inflate_ip(20, 20)            #原地放大縮小 用處??
         for i in range(14):
@@ -98,7 +97,6 @@ class RealBoard(object):                           # 棋盤
         point -- a single point (tuple) to look for
         points -- a list of points to be searched
         """
-
         for i in Stones:
             if point == i.point: return True
         if not redRect:
@@ -131,8 +129,7 @@ class RealBoard(object):                           # 棋盤
             self.next = BLACK
             return WHITE
 
-    def check_win(self, x, y, color):
-        
+    def check_win(self, x, y, color):  
         first = [[x-4, y-4], [x-4, y+4], [x-4, y], [x, y-4]]
         count = 0
         for j in range(4):
@@ -142,7 +139,6 @@ class RealBoard(object):                           # 棋盤
                 for i in range(9):
                     if (x+i, y+i) in self.groups[color]:
                         count += 1
-                        #print(count)
                         if count == 5:
                             return True
                     else:
@@ -151,7 +147,6 @@ class RealBoard(object):                           # 棋盤
                 for i in range(9):
                     if (x+i, y-i) in self.groups[color]:
                         count += 1
-                       # print(count)
                         if count == 5:
                             return True
                     else:
@@ -160,7 +155,6 @@ class RealBoard(object):                           # 棋盤
                 for i in range(9):
                     if (x+i, y) in self.groups[color]:
                         count += 1
-                        #print(count)
                         if count == 5:
                             return True
                     else:
@@ -169,38 +163,20 @@ class RealBoard(object):                           # 棋盤
                 for i in range(9):
                     if (x, y+i) in self.groups[color]:
                         count += 1
-                        #print(count)
                         if count == 5:
                             return True
-                    else:
-                        count = 0
-            
         return False
 
     def win(self, color):
-        font = pg.font.Font("D:/Users/sab93/Desktop/python/final-project/ai/Five_chess/msjh.ttc", 50)
+        font = pg.font.Font(getcwd().replace('\\', '/') + "/msjhbd.ttc", 40)
         if color == BLACK:
-            text = font.render("你贏了", True, (0,0,255), (255,255,255))
-            screen.blit(text, (200,250))
+            text = font.render("你贏了", True, (0,0,255), (224,224,80))
+            screen.blit(text, (250,700))
         else:
-            text = font.render("你輸了", True, (0,0,255), (255,255,255))
-            screen.blit(text, (200,250))
+            text = font.render("你輸了", True, (255,0,0), (224,224,80))
+            screen.blit(text, (250,700))
         pg.display.update()
-        paused()
-
-def paused():
-    while True:
-        for _event in pg.event.get():
-            print(_event)
-            if _event.type == pg.QUIT:
-                pg.quit()
-
-    #def auto_draw(self, x, y):
-    #    print(x, y)
-    #    added_stone = Stone(rboard, (x, y), rboard.turn())
-    #    added_stone.draw()
-#def adjust_window():
-
+        time.wait(3000)
         
 def GUI():
     s_hit = pg.mixer.Sound('Wate.wav')  #括弧為音檔名稱 
@@ -208,7 +184,6 @@ def GUI():
     #window = pg.display.set_mode((900,900))     # 建視窗
     run = True
     font = pg.font.Font("msjhbd.ttc", 28)
-    #regret_str = font.render('悔棋', True, (255,0,0), (224,224,80))
     #background.blit(regret_str, (670,80))
     screen.blit(background,(0,0))
     background.blit(btn[0], BTN_location)                                  # 畫按鈕
@@ -259,7 +234,7 @@ def GUI():
                         hum_stone.draw()                       # 玩家下(先手 黑 )
                         if rboard.check_win(x,y, BLACK):
                             rboard.win(BLACK)
-                            
+                            return
                         board.put(P.hum, playersScore(y-1,x-1))
                         s_hit.play()
 
@@ -271,6 +246,7 @@ def GUI():
                             com_stone.draw()
                             if rboard.check_win(b+1,a+1, WHITE):
                                 rboard.win(WHITE)
+                                return
                                 
                     else: 
                         screen.blit(font.render("該位置已有棋子存在!", True, (255,0,0), (224, 224, 80)), (200,650))
@@ -289,9 +265,7 @@ def GUI():
                         pg.display.update()
                         # 動作
                         start_ticks=pg.time.get_ticks()
-                        #removed_b = Stone(rboard, (board.allSteps[-1].pos[1]+1, board.allSteps[-1].pos[0]+1))
                         Stones.pop().remove()
-                        #removed_w = Stone(rboard, (board.allSteps[-2].pos[1]+1, board.allSteps[-2].pos[0]+1))
                         Stones.pop().remove()
                         ai.backward()                  
                         s_hit.play()
@@ -306,10 +280,7 @@ def GUI():
                         ai.backward()                  
                         s_hit.play()
                         time.wait(200)
-                    #board.update_liberties(added_stone)
-                '''
-                        
-                
+                '''               
     exit()
 
 def Setting():  #難度設定
@@ -335,7 +306,12 @@ def Setting():  #難度設定
                 elif event.button == 1 and No_outline.collidepoint(event.pos):
                     s_hit.play()
                     pg.time.wait(300)
-                    exit()    
+                    exit()
+    # reset
+    for i in range(len(Stones)):
+        Stones.pop().remove() 
+    rboard.groups = {(0, 0, 0):[], (255, 255, 255):[]}
+
     screen.blit(background,(0,0))
     display.update()           
     time.wait(300)
@@ -379,6 +355,8 @@ if __name__ == '__main__':
     btn = [pg.image.load(BTN1).convert_alpha(), pg.image.load(BTN2).convert_alpha()] # 按鈕圖
     btn_rect = btn[0].get_rect(topleft=BTN_location)  # 獲取矩形區域
     rboard = RealBoard()
-    searchDeep=Setting()     # 執行難度設定, 並回傳難度值 (1~3)
-    print("Level",searchDeep)
-    GUI()
+    while True:
+        searchDeep=Setting()     # 執行難度設定, 並回傳難度值 (1~3)
+        print("Level",searchDeep)
+        GUI()
+        board.reset()

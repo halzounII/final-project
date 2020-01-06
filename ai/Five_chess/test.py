@@ -5,13 +5,14 @@ Created on Tue Dec 17 17:36:16 2019
 @author: sab93
 """
 
-from pygame import draw, display, Rect, mouse, event, time, init, image
-from pygame.locals import K_ESCAPE, KEYDOWN, MOUSEBUTTONDOWN, QUIT
-from ai import ai
-from board import board, playersScore
-from score import players as P
-from os import getcwd
-BACKGROUND = getcwd().replace('\\', '/') + '/ramin.jpg'# 棋盤圖 from github
+import pygame as pg
+from pygame.locals import *
+from ai_modified import auto, bk
+
+
+BACKGROUND = 'D:/Users/sab93/Desktop/python/final-project/ai/Five_chess/ramin.jpg'                       # 棋盤圖 from github
+BTN1 = 'D:/Users/sab93/Desktop/python/final-project/ai/Five_chess/regret0.png'
+BTN2 = 'D:/Users/sab93/Desktop/python/final-project/ai/Five_chess/regret1.png'
 BOARD_SIZE = (820, 820)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -32,8 +33,8 @@ class Stone(object):                           # 棋子
         
     def draw(self):
         """Draw the stone as a circle."""
-        draw.circle(screen, self.color, self.coords, 20, 0)            #(Surface, color, pos , raduis, width)
-        display.update()
+        pg.draw.circle(screen, self.color, self.coords, 20, 0)            #(Surface, color, pos , raduis, width)
+        pg.display.update()
         
 
     
@@ -42,7 +43,7 @@ class Stone(object):                           # 棋子
         blit_coords = (self.coords[0] - 20, self.coords[1] - 20)
         area_rect = Rect(blit_coords, (40, 40))
         screen.blit(background, blit_coords, area_rect)
-        display.update()
+        pg.display.update()
         #self.group.stones.remove(self)
         del self
 
@@ -53,8 +54,8 @@ class RealBoard(object):                           # 棋盤
         """Create and initialize an empty board."""
         self.groups = {(0, 0, 0):[], (255, 255, 255):[]}
         self.next = BLACK
-        self.outline = Rect(45, 45, 560, 560)   # (起始x y x長 y長 )
-        self.regret = Rect(625, 45, 150 ,75)
+        self.outline = pg.Rect(45, 45, 560, 560)   # (起始x y x長 y長 )
+        #self.regret = pg.Rect(625, 45, 150 ,75)
         self.draw()
         self.bk = False
         
@@ -66,20 +67,21 @@ class RealBoard(object):                           # 棋盤
         This method should only be called once, when initializing the
         board.
         """
-        draw.rect(background, BLACK, self.outline, 3)
-        draw.rect(background, BLACK, self.regret, 3)
+        pg.draw.rect(background, BLACK, self.outline, 3)
+        #pg.draw.rect(background, (255, 0, 0), self.regret, 0)
         # Outline is inflated here for future use as a collidebox for the mouse
         self.outline.inflate_ip(20, 20)            #原地放大縮小 用處??
         for i in range(14):
             for j in range(14):
                 rect = Rect(45 + (40 * i), 45 + (40 * j), 40, 40)
-                draw.rect(background, BLACK, rect, 1)
+                pg.draw.rect(background, BLACK, rect, 1)
         for i in range(2):
             for j in range(2):
                 coords = (165 + (320 * i), 165 + (320 * j))
-                draw.circle(background, BLACK, coords, 5, 0)
-        screen.blit(background, (0, 0))                                 # 重繪視窗
-        display.update()                                             # 更新視窗
+                pg.draw.circle(background, BLACK, coords, 5, 0)
+        screen.blit(background, (0, 0))                                 # 重繪視窗(棋盤背景)
+        screen.blit(btn[0], (650, 45))                                  # 畫按鈕
+        pg.display.update()                                             # 更新視窗
 
     def search(self, point=None, points=[]):
         """Search the board for a stone.
@@ -98,23 +100,79 @@ class RealBoard(object):                           # 棋盤
             print(f"黑棋位置{self.groups[0,0,0]}\n白棋位置{self.groups[(255,255,255)]}")
             return False
 
+    def check_win(self, x, y, color):
+        
+        first = [[x-4, y-4], [x-4, y+4], [x-4, y], [x, y-4]]
+        count = 0
+        for j in range(4):
+            x = first[j][0]
+            y = first[j][1]
+            if j == 0:
+                for i in range(9):
+                    if (x+i, y+i) in self.groups[color]:
+                        count += 1
+                        #print(count)
+                        if count == 5:
+                            return True
+                    else:
+                        count = 0
+            if j == 1:
+                for i in range(9):
+                    if (x+i, y-i) in self.groups[color]:
+                        count += 1
+                       # print(count)
+                        if count == 5:
+                            return True
+                    else:
+                        count = 0
+            if j == 2:
+                for i in range(9):
+                    if (x+i, y) in self.groups[color]:
+                        count += 1
+                        #print(count)
+                        if count == 5:
+                            return True
+                    else:
+                        count = 0
+            if j == 3:
+                for i in range(9):
+                    if (x, y+i) in self.groups[color]:
+                        count += 1
+                        #print(count)
+                        if count == 5:
+                            return True
+                    else:
+                        count = 0
+            
+        return False
+
+    def win(self, color):
+        font = pg.font.Font("D:/Users/sab93/Desktop/python/final-project/ai/Five_chess/msjh.ttc", 50)
+        if color == WHITE:
+            text = font.render("你贏了 蒸蚌", True, (0,0,255), (255,255,255))
+            screen.blit(text, (200,250))
+        else:
+            text = font.render("哈哈哈哈哈", True, (0,0,255), (255,255,255))
+            screen.blit(text, (200,250))
+        pg.display.update()
+
     
     @staticmethod    
     def Preview():
-        pos = mouse.get_pos()
+        pos = pg.mouse.get_pos()
         x = int(round(((pos[0] - 5) / 40.0), 0))*40-5
         y = int(round(((pos[1] - 5) / 40.0), 0))*40-5
         stone = rboard.search(point=(x, y))
         print(stone)
         if not stone:
             preview = Rect([x, y, 20, 20])           
-            draw.rect(screen, RED, preview, 1)
-            display.update()
-            time.wait(30)
+            pg.draw.rect(screen, RED, preview, 1)
+            pg.display.update()
+            pg.time.wait(30)
             blit_coords = (x , y )
             area_rect = Rect(blit_coords, (20, 20))
             screen.blit(background, blit_coords, area_rect)
-            display.update()
+            pg.display.update()
 
     def turn(self):
         """Keep track of the turn by flipping between BLACK and WHITE."""
@@ -139,56 +197,69 @@ def GUI():
     #added_stone = Stone(rboard, (8, 8), rboard.turn())
     #added_stone.draw()
     rboard.next = WHITE
-    while run:
-        for _event in event.get():   
 
+    
+    while run:
+        for event in pg.event.get():   
+            
             #RealBoard.Preview()
             #print(pos,x,y)
-            if _event.type == KEYDOWN:           # 觸發關閉視窗
-                if _event.key == K_ESCAPE:
+            if event.type == KEYDOWN:           # 觸發關閉視窗
+                if event.key == K_ESCAPE:
                     run = False
-            elif _event.type == QUIT:
+            elif event.type == QUIT:
                 run = False
 
-            elif _event.type == MOUSEBUTTONDOWN:  # 下棋
-                if _event.button == 1 and rboard.outline.collidepoint(_event.pos):            
-                    x = int(round(((_event.pos[0] - 5) / 40.0), 0))
-                    y = int(round(((_event.pos[1] - 5) / 40.0), 0))
+            elif event.type == MOUSEBUTTONDOWN:  # 下棋
+                if event.button == 1 and rboard.outline.collidepoint(event.pos):            
+                    x = int(round(((event.pos[0] - 5) / 40.0), 0))
+                    y = int(round(((event.pos[1] - 5) / 40.0), 0))
                     stone = rboard.search(point=(x, y))
-
                     if not stone :
                         added_stone = Stone(rboard, (x, y), rboard.turn())
                         added_stone.draw()                       # 玩家下(先手 白 )
-                        board.put(P.hum, playersScore(y-1,x-1))
-
-                        a, b = tuple(ai.begin().pos)                     
+                        if rboard.check_win(x,y, WHITE):
+                            print('win')
+                            rboard.win(WHITE)
+                        print("checked")
+                        a, b = auto(y-1,x-1)                     
                         #print(a,b)
                         if not rboard.search(point=(b+1,a+1)):   # 有時會沒下到(可能重複下) 擋活三死四時發生
                             rboard.auto_draw(b+1,a+1)                    # 電腦下
+                            if rboard.check_win(b+1,a+1, BLACK):
+                                print("lose")
+                                rboard.win(BLACK)
                             rboard.next = WHITE
-                if _event.button == 1 and rboard.regret.collidepoint(_event.pos):
+                        
+                
+                if event.button == 1 and btn_rect.collidepoint(event.pos):
                    
                     if rboard.groups[(255, 255, 255)] and rboard.groups[(0, 0, 0)]: 
                         print("悔棋")
-                        ai.backward()
+                        # 按下動畫
+                        screen.blit(btn[1], (650, 45))
+                        pg.display.update()
+                        pg.time.wait(150)
+                        screen.blit(btn[0], (650, 45))
+                        pg.display.update()
+                        # 動作
+                        bk()
                         removed_w = Stone(rboard, (rboard.groups[(255, 255, 255)].pop()), WHITE )
                         removed_w.remove()
                         removed_b = Stone(rboard, (rboard.groups[(0, 0, 0)].pop()), BLACK )
-                        removed_b.remove()
-                      
-
-                        
-                    #board.update_liberties(added_stone)
+                        removed_b.remove()                       
     exit()
     
     
     
     
 if __name__ == '__main__':
-    init()
-    display.set_caption('Goban')
-    screen = display.set_mode(BOARD_SIZE, 0, 32)
-    background = image.load(BACKGROUND).convert()
+    pg.init()
+    pg.display.set_caption('五子棋')                     # 視窗標題
+    screen = pg.display.set_mode(BOARD_SIZE, 0, 32)      # 視窗
+    background = pg.image.load(BACKGROUND).convert()     
+    btn = [pg.image.load(BTN1).convert_alpha(), pg.image.load(BTN2).convert_alpha()] # 按鈕圖
+    btn_rect = btn[0].get_rect(topleft=(650, 45))  # 獲取矩形區域
     rboard = RealBoard()
     GUI()
     '''

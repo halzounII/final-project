@@ -1,7 +1,7 @@
 searchDeep = 8
 countLimit = 20   # board.generator() 
 star = True       # board.generator()
-timeLimit = 3 # sec
+timeLimit = 5 # sec
 cache = False
 spreadLimit = 1
 opening = True

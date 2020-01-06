@@ -34,9 +34,9 @@ def auto(x,y):
     #    return
     a = ai.begin()
 
-    print(board)    
+    #print(board)    
     board.put(P.hum, playersScore(x, y))
-    print(board)
+    #print(board)
     table, table2 = '', ''
     for i in range(15):
         table += ''.join(str(board.humScore[i])) + '\n'
@@ -44,20 +44,6 @@ def auto(x,y):
     # 把電腦下的座標回傳GUI
     return (a.pos)
     
-    '''
-    while True:
-        #x,y = int(input('x:')), int(input('y:'))
-        board.put(P.hum, playersScore(x, y))
-        ai.begin()
-        print(board)
-        table, table2 = '', ''
-        for i in range(15):
-            table += ''.join(str(board.humScore[i])) + '\n'
-            table2 += ''.join(str(board.comScore[i])) + '\n'
-        #print(table)
-        #print(table2)
-        #print(board.allSteps)
-    '''
 def bk():
     ai.backward()    
 if __name__ == "__main__":

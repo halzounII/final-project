@@ -140,6 +140,7 @@ class Board:
         self.currentSteps.append(place)
         self.updateScore(place)
         self.count += 1
+        print(f'put {place.pos},{player}, {self.currentSteps}')
 
     def remove(self, place = playersScore()) -> None:
         if self.board[place.pos[0]][place.pos[1]] == 0: return  #該位置沒棋

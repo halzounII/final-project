@@ -54,7 +54,7 @@ def r(deep, alpha, beta, player, step: int,steps: list, spread) -> dict:
     Eval = board.evaluate(player)  # 自己與對手的分數差距
     leaf = {'score':Eval, 'step':step, 'steps': steps, 'ABcut': 0} #搜索終點
     var.count += 1
-    if deep < 1 or abs(Eval) >= s.five: return leaf
+    if deep < 0 or abs(Eval) >= s.five: return leaf
     # 分數差大於s.five: 某方已經可以單獨成五(勝利)，回傳leaf
     #3. 列出所有可能的下一步
     best: dict = {'score': var.MIN, 'step': step, 'steps': steps, 'ABcut': 0}  #?? why score is var.MIN?
@@ -99,31 +99,29 @@ def deeping(candidates: list, player, deep = config.searchDeep):
         if negamax(candidates, player, i, var.MIN , var.MAX) >= s.five: 
             if config.debug or config.gen: print('win')
             break 
-        #可贏，跳出
+    #可贏，跳出
     chosen, choices = [], []
     if config.log: 
         for i in candidates: print(i.v)
     for k in range(ceil(len(candidates)/5)): #randomly pick good candidates
         result = candidates[0]
-        for j, i in enumerate(candidates[1:]):
-            if i.v['ABcut'] == 1: del i;continue #raise Exception('pruning bugs?')
-            if j in chosen: continue
-            if i.v['score'] > result.v['score']: result = i; var.index = j
-            elif i.v['score'] == result.v['score']:
-                if i.v['score'] >= 0 and i.v['step'] < result.v['step']: 
-                    result = i; var.index = j
-                elif i.v['score'] < 0 and i.v['step'] > result.v['step']: 
+        try:
+            for j, i in enumerate(candidates[1:]):
+                if i.v['ABcut'] == 1: continue #raise Exception('pruning bugs?')
+                if j in chosen: continue
+                if i.v['score'] > result.v['score']: result = i; var.index = j
+                elif i.v['score'] == result.v['score']:
+                    if i.v['score'] >= 0 and i.v['step'] < result.v['step']: 
+                        result = i; var.index = j
+                    elif i.v['score'] < 0 and i.v['step'] > result.v['step']: 
                         result = i; var.index = j 
             result.score = result.v['score']
+        except: KeyError
         choices.append(result)
         if config.log or config.gen: 
             print(var.index)
             print(result.v)
         chosen.append(var.index)
-
-    #timeSpent = perf_counter() - start_counter
-    #print(timeSpent)
-    #print(result.score, result.v)
     return  choice(choices) #playersScore()
 
 def deepAll(deep = config.searchDeep):

@@ -39,8 +39,6 @@ class Stone(object):                           # 棋子
         screen.blit(background, (0, 0))
         display.update()
         
-
-    
     def remove(self):                                                     # 移除(悔棋)
         """Remove the stone from board."""
         blit_coords = (self.coords[0] - 20, self.coords[1] - 20)
@@ -84,7 +82,7 @@ class RealBoard(object):                           # 棋盤
             for j in range(2):
                 coords = (165 + (320 * i), 185 + (320 * j))
                 draw.circle(background, BLACK, coords, 5, 0)
-        screen.blit(background, (0, 0))                                 # 重繪視窗
+        screen.blit(background, (0, 0))                              # 重繪視窗
         display.update()                                             # 更新視窗
 
     def search(self, point=None, points=[], redRect = False):
@@ -110,7 +108,6 @@ class RealBoard(object):                           # 棋盤
         x = int(round(((pos[0] - 5) / 40.0), 0))*40-5
         y = int(round(((pos[1] - 25) / 40.0), 0))*40+15
         stone = rboard.search(point=(x, y), redRect = True)
-        #print(stone)
         if not stone and (25<=x<=625) and (45<=y<=645):
             preview = Rect([x, y, 20, 20])           
             draw.rect(screen, RED, preview, 1)
@@ -140,9 +137,6 @@ def GUI():
     s_hit.set_volume(0.7)  #設定音量大小，參值0~1 
     #window = pg.display.set_mode((900,900))     # 建視窗
     run = True
-    #rboard.search(point=(8, 8))
-    #added_stone = Stone(rboard, (8, 8), rboard.turn())
-    #added_stone.draw()
     font = pg.font.Font("msjhbd.ttc", 28)
     regret_str = font.render('悔棋', True, (255,0,0), (224,224,80))
     background.blit(regret_str, (670,80))
@@ -209,11 +203,9 @@ def GUI():
                         display.update()
                 elif _event.button == 1 and rboard.regret.collidepoint(_event.pos):
                     if rboard.groups[(255, 255, 255)] and rboard.groups[(0, 0, 0)]: 
-                        if config.log:print("悔棋")
+                        if config.log: print("悔棋")
                         start_ticks=pg.time.get_ticks()
-                        #removed_b = Stone(rboard, (board.allSteps[-1].pos[1]+1, board.allSteps[-1].pos[0]+1))
                         Stones.pop().remove()
-                        #removed_w = Stone(rboard, (board.allSteps[-2].pos[1]+1, board.allSteps[-2].pos[0]+1))
                         Stones.pop().remove()
                         ai.backward()                  
                         s_hit.play()
@@ -279,8 +271,6 @@ def Setting():  #難度設定
     time.wait(300)
     return level   
     
-    
-    
 if __name__ == '__main__':
     init()
     display.set_caption('Goban')
@@ -291,21 +281,3 @@ if __name__ == '__main__':
     searchDeep=Setting()     # 執行難度設定, 並回傳難度值 (1~3)
     print("Level",searchDeep)
     GUI()
-    '''
-    ai = AI()
-    ai.begin()
-    print(board)
-    
-    while True:
-        x,y = int(input('x:')), int(input('y:'))
-        board.put(P.hum, playersScore(x, y))
-        ai.begin()
-        print(board)
-        table, table2 = '', ''
-        for i in range(15):
-            table += ''.join(str(board.humScore[i])) + '\n'
-            table2 += ''.join(str(board.comScore[i])) + '\n'
-        #print(table)
-        #print(table2)
-        #print(board.allSteps)   
-    '''

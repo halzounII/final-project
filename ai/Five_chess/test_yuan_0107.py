@@ -14,6 +14,7 @@ from os import getcwd
 import pygame as pg
 import config
 import threading as thr
+import win
 BACKGROUND = getcwd().replace('\\', '/') + '/ramin.jpg'# 棋盤圖 from github
 BTN1 = getcwd().replace('\\', '/') + '/regret0.png'
 BTN2 = getcwd().replace('\\', '/') + '/regret1.png'
@@ -63,24 +64,19 @@ class Stone(object):                           # 棋子
         background.blit(background_org, blit_coords, area_rect)
         background_red.blit(background, (0, 0))
         screen.blit(background_red, (0, 0))
-        # screen.blit(background, blit_coords, area_rect)
         display.update()
-        #self.group.stones.remove(self)
         del self
-
 
 class RealBoard(object):                           # 棋盤
     def __init__(self):
         """Create and initialize an empty board."""
         self.groups = {(0, 0, 0):[], (255, 255, 255):[]}
         self.res = {(0, 0, 0):[], (255, 255, 255):[]}
-        #self.next = WHITE
         self.outline = Rect(45, 65, 560, 560)   # (起始x y x長 y長 )
         self.regret = Rect(625, 65, 150 ,75)
         self.draw()
         background_org.blit(background, (0, 0))
         background_red.blit(background, (0, 0))
-        self.bk = False
         
     def draw(self):
         """Draw the board to the background and blit it to the screen.
@@ -134,7 +130,7 @@ class RealBoard(object):                           # 棋盤
             draw.rect(screen, RED, preview, 1)
             display.update()
             time.wait(50)
-            blit_coords = (x , y )
+            blit_coords = (x , y)
             area_rect = Rect(blit_coords, (20, 20))
             screen.blit(background_red, blit_coords, area_rect)
             display.update()
@@ -147,8 +143,7 @@ class RealBoard(object):                           # 棋盤
         else:
             self.next = BLACK
             return WHITE
-
-    def check_win(self, x, y, color):  
+    '''def check_win(self, x, y, color):  
         first = [[x-4, y-4], [x-4, y+4], [x-4, y], [x, y-4]]
         count = 0
         for j in range(4):
@@ -184,8 +179,7 @@ class RealBoard(object):                           # 棋盤
                         count += 1
                         if count == 5:
                             return True
-        return False
-
+        return False'''
     def win(self, color):
         font = pg.font.Font(getcwd().replace('\\', '/') + "/msjhbd.ttc", 40)
         s_kill = pg.mixer.Sound('kill.wav')  #括弧為音檔名稱 
@@ -234,10 +228,9 @@ def GUI():
     add_outline = Rect(670,300,60,40)
     sub_outline = Rect(670,400,60,40)
     pause_outline = Rect(670,500,60,40)
-    draw.rect(background, RED, (670,300,60,40), 3)
-    draw.rect(background, RED, (670,350,60,40), 3)
-    draw.rect(background, RED, (670,400,60,40), 3)
-    draw.rect(background, RED, (670,500,60,40), 3)
+    for i in range(5):
+        if i == 3: continue
+        draw.rect(background, RED, (670,300 + 50*i,60,40), 3)
     screen.blit(background,(0,0))
     background.blit(btn[0], BTN_location)                                  # 畫按鈕
     background.blit(btn[2], BTN_location_1)
@@ -291,9 +284,8 @@ def GUI():
                         hum_stone = Stone(rboard, (x, y), rboard.turn())
                         Stones.append(hum_stone)
                         hum_stone.draw()                       # 玩家下(先手 黑 )
-                        if rboard.check_win(x,y, BLACK):
-                            rboard.win(BLACK)
-                            return
+                        if win.Fives(board, P.hum, playersScore(y-1, x-1)) > 0:
+                            rboard.win(BLACK); return
                         board.put(P.hum, playersScore(y-1,x-1))
                         s_hit.play()
 
@@ -307,9 +299,8 @@ def GUI():
                             Stones.append(com_stone)
                             com_stone.draw()
                             time.wait(500)
-                            if rboard.check_win(b+1,a+1, WHITE):
-                                rboard.win(WHITE)
-                                return
+                            if win.Fives(board, P.com, playersScore(a, b)) > 0:
+                                rboard.win(WHITE); return
                                 
                     else: 
                         screen.blit(font.render("該位置已有棋子存在!", True, (255,0,0), (224, 224, 80)), (200,650))
@@ -377,7 +368,6 @@ def GUI():
                         # 加回list
                         rboard.groups[(0, 0, 0)].append(next_b)
                         rboard.groups[(255, 255, 255)].append(next_w)
-                       # print(rboard.groups) 
                         Stones.append(hum_stone_b)
                         Stones.append(hum_stone_w)
                         ai.forward()                  
@@ -422,7 +412,6 @@ def Setting():  #難度設定
     for i in range(len(Stones)):
         Stones.pop().remove() 
     rboard.groups = {(0, 0, 0):[], (255, 255, 255):[]}
-
     screen.blit(background,(0,0))
     display.update()           
     time.wait(300)

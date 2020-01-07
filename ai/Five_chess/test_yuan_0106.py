@@ -19,6 +19,8 @@ BTN1 = getcwd().replace('\\', '/') + '/regret0.png'
 BTN2 = getcwd().replace('\\', '/') + '/regret1.png'
 BTN3 = getcwd().replace('\\', '/') + '/recover0.png'
 BTN4 = getcwd().replace('\\', '/') + '/recover1.png'
+RESTART = [getcwd().replace('\\', '/') + '/restart0.png',\
+           getcwd().replace('\\', '/') + '/restart1.png']
 HOURGLASS = [getcwd().replace('\\', '/') + '/hourglass0.png',\
             getcwd().replace('\\', '/') + '/hourglass1.png',\
             getcwd().replace('\\', '/') + '/hourglass2.png',\
@@ -26,6 +28,7 @@ HOURGLASS = [getcwd().replace('\\', '/') + '/hourglass0.png',\
 HOURGLASS_location = (670, 600)
 BTN_location = (650, 60)
 BTN_location_1 = (650, 150)
+RESTART_location = (650, 240)
 BOARD_SIZE = (820, 700)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -97,6 +100,7 @@ class RealBoard(object):                           # 棋盤
         screen.blit(background, (0, 0))                                 # 重繪視窗
         background.blit(btn[0], BTN_location)                           # 畫按鈕
         background.blit(btn[2], BTN_location_1)
+        background.blit(btn[4], RESTART_location)
         display.update()                                             # 更新視窗
 
     def search(self, point=None, points=[], redRect = False):
@@ -227,6 +231,7 @@ def GUI():
     screen.blit(background,(0,0))
     background.blit(btn[0], BTN_location)                                  # 畫按鈕
     background.blit(btn[2], BTN_location_1)
+    background.blit(btn[4], RESTART_location)
     pg.display.update()
     #regret_outline  = pg.Rect(625, 65, 150 ,75)
     start_ticks=pg.time.get_ticks() #將目前的時間記錄下來, 單位是毫秒
@@ -363,7 +368,16 @@ def GUI():
                         Stones.append(hum_stone_w)
                         ai.forward()                  
                         s_hit.play()
-                        time.wait(200)      
+                        time.wait(200)
+                elif _event.button == 1 and restart_rect.collidepoint(_event.pos):    
+                    # 按下動畫
+                    screen.blit(btn[5], RESTART_location)
+                    pg.display.update()
+                    pg.time.wait(150)
+                    screen.blit(btn[4], RESTART_location)
+                    pg.display.update()
+                    pg.time.wait(150)
+                    return      
     exit()
 
 def Setting():  #難度設定
@@ -435,9 +449,15 @@ if __name__ == '__main__':
     screen = display.set_mode(BOARD_SIZE, pg.RESIZABLE, 32)
     background = image.load(BACKGROUND).convert()
     background_org = image.load(BACKGROUND).convert()
-    btn = [pg.image.load(BTN1).convert_alpha(), pg.image.load(BTN2).convert_alpha(), pg.image.load(BTN3).convert_alpha(), pg.image.load(BTN4).convert_alpha()] # 按鈕圖
+    btn = [pg.image.load(BTN1).convert_alpha(),\
+           pg.image.load(BTN2).convert_alpha(),\
+           pg.image.load(BTN3).convert_alpha(),\
+           pg.image.load(BTN4).convert_alpha(),\
+           pg.image.load(RESTART[0]).convert_alpha(),\
+           pg.image.load(RESTART[1]).convert_alpha()] # 按鈕圖
     regret_rect = btn[0].get_rect(topleft=BTN_location)  # 獲取矩形區域
     recover_rect = btn[2].get_rect(topleft=BTN_location_1)  # 獲取矩形區域
+    restart_rect = btn[4].get_rect(topleft=RESTART_location)
     hourglasses = [pg.image.load(i) for i in HOURGLASS]
     rboard = RealBoard()
     while True:

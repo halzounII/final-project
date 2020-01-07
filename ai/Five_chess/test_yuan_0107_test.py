@@ -253,7 +253,6 @@ def GUI():
     T_count_set=T_count_set_org
     global change
     if rboard.turn() == (255, 255, 255) and rboard.groups[(0, 0, 0)] == []:
-        print(11111111)
         change = True
         ani = thr.Thread(target = animation)
         ani.start()
@@ -396,14 +395,22 @@ def GUI():
                         next_w = rboard.res[(255, 255, 255)].pop()
                         
                         # 把棋子畫回棋盤
-                        if rboard.turn() == (0,0,0):
+                        if rboard.turn() == (255,255,255):
                             rboard.turn()
-                        hum_stone_b = Stone(rboard, next_b, rboard.turn())
-                        hum_stone_b.draw()
-                        hum_stone_w = Stone(rboard, next_w, rboard.turn())
-                        hum_stone_w.draw()
-                        if change:
+                            hum_stone_w = Stone(rboard, next_w, rboard.turn())
+                            hum_stone_w.draw()
+                            hum_stone_b = Stone(rboard, next_b, rboard.turn())
+                            hum_stone_b.draw()
+                            
+                        else:
                             rboard.turn()
+                            hum_stone_b = Stone(rboard, next_b, rboard.turn())
+                            hum_stone_b.draw()
+                            hum_stone_w = Stone(rboard, next_w, rboard.turn())
+                            hum_stone_w.draw()
+                            
+                        #if change:
+                            #rboard.turn()
                         # 加回list
                         rboard.groups[(0, 0, 0)].append(next_b)
                         rboard.groups[(255, 255, 255)].append(next_w)

@@ -244,6 +244,7 @@ def GUI():
                         hum_stone = Stone(rboard, (x, y), rboard.turn())
                         hum_stone.draw()                       # 玩家下(先手 黑 )
                         Stones.append(hum_stone)
+                        rboard.res = {(0,0,0):[], (255,255,255):[]}
                         if win.Fives(board, P.hum, playersScore(y-1, x-1)) > 0:
                             rboard.win(BLACK); return
                         board.put(P.hum, playersScore(y-1,x-1))
@@ -327,7 +328,8 @@ def GUI():
                         # 加回list
                         rboard.groups[(0, 0, 0)].append(next_b)
                         rboard.groups[(255, 255, 255)].append(next_w)
-                        Stones.append(hum_stone_b).append(hum_stone_w)
+                        Stones.append(hum_stone_b)
+                        Stones.append(hum_stone_w)
                         ai.forward()                  
                         s_hit.play()
                         time.wait(200)

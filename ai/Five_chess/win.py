@@ -4,7 +4,7 @@ from board import board, playersScore
 def Fives(board, player, place = playersScore())-> int:
     count = 1
     for i in range(place.pos[1] + 1, board.size):
-        if i or board.board[place.pos[0]][i] != player: break
+        if board.board[place.pos[0]][i] != player: break
         count += 1
     for i in range(place.pos[1] - 1, -1 , -1):
         if board.board[place.pos[0]][i] != player: break
@@ -13,7 +13,7 @@ def Fives(board, player, place = playersScore())-> int:
     
     count = 1
     for i in range(place.pos[0] + 1, board.size):
-        if board.board[i][place.pos[1]] != player: break
+        if board.board[i][place.pos[1]] != player: print(count); break
         count += 1
     for i in range(place.pos[0] - 1, -1 , -1):
         if board.board[i][place.pos[1]] != player: break

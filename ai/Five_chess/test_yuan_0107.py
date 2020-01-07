@@ -52,7 +52,7 @@ class Stone(object):                           # 棋子
         """Draw the stone as a circle."""
         draw.circle(background, BLACK if rboard.next == WHITE else WHITE, self.coords, 20, 0)            #(Surface, color, pos , raduis, width)
         background_red.blit(background, (0, 0))
-        draw.circle(background_red, RED, self.coords, 10, 0) #用紅色小圓顯示最後一顆子
+        draw.circle(background_red, RED, self.coords, 21, 2) #用紅色小圓顯示最後一顆子
         screen.blit(background_red, (0, 0))
         display.update()
         

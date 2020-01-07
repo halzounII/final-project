@@ -143,43 +143,7 @@ class RealBoard(object):                           # 棋盤
         else:
             self.next = BLACK
             return WHITE
-    '''def check_win(self, x, y, color):  
-        first = [[x-4, y-4], [x-4, y+4], [x-4, y], [x, y-4]]
-        count = 0
-        for j in range(4):
-            x = first[j][0]
-            y = first[j][1]
-            if j == 0:
-                for i in range(9):
-                    if (x+i, y+i) in self.groups[color]:
-                        count += 1
-                        if count == 5:
-                            return True
-                    else:
-                        count = 0
-            if j == 1:
-                for i in range(9):
-                    if (x+i, y-i) in self.groups[color]:
-                        count += 1
-                        if count == 5:
-                            return True
-                    else:
-                        count = 0
-            if j == 2:
-                for i in range(9):
-                    if (x+i, y) in self.groups[color]:
-                        count += 1
-                        if count == 5:
-                            return True
-                    else:
-                        count = 0
-            if j == 3:
-                for i in range(9):
-                    if (x, y+i) in self.groups[color]:
-                        count += 1
-                        if count == 5:
-                            return True
-        return False'''
+
     def win(self, color):
         font = pg.font.Font(getcwd().replace('\\', '/') + "/msjhbd.ttc", 40)
         s_kill = pg.mixer.Sound('kill.wav')  #括弧為音檔名稱 
@@ -266,15 +230,11 @@ def GUI():
 
         for _event in event.get():
             RealBoard.Preview()
-            #print(pos,x,y)
-            if _event.type == KEYDOWN:           # 觸發關閉視窗
-                if _event.key == K_ESCAPE:
-                    run = False
-            elif _event.type == QUIT:
-                run = False
+            if _event.type == KEYDOWN and _event.key == K_ESCAPE: run = False # 觸發關閉視窗
+            elif _event.type == QUIT: run = False
 
-            elif _event.type == MOUSEBUTTONDOWN:  # 下棋
-                if _event.button == 1 and rboard.outline.collidepoint(_event.pos):            
+            elif _event.type == MOUSEBUTTONDOWN and _event.button == 1:  # 下棋
+                if rboard.outline.collidepoint(_event.pos):            
                     x = int(round(((_event.pos[0] - 5) / 40.0), 0))
                     y = int(round(((_event.pos[1] - 25) / 40.0), 0))
                     stone = rboard.search(point=(x, y))
@@ -282,8 +242,8 @@ def GUI():
                     if not stone :
                         T_count_set = T_count_set_org
                         hum_stone = Stone(rboard, (x, y), rboard.turn())
-                        Stones.append(hum_stone)
                         hum_stone.draw()                       # 玩家下(先手 黑 )
+                        Stones.append(hum_stone)
                         if win.Fives(board, P.hum, playersScore(y-1, x-1)) > 0:
                             rboard.win(BLACK); return
                         board.put(P.hum, playersScore(y-1,x-1))
@@ -309,14 +269,14 @@ def GUI():
                         screen.blit(background_red, (0, 0))
                         display.update()
 
-                elif _event.button == 1 and add_outline.collidepoint(_event.pos): #聲音變大
+                elif add_outline.collidepoint(_event.pos): #聲音變大
                     vol +=1
                     s_hit.set_volume(vol/10)
-                elif _event.button == 1 and sub_outline.collidepoint(_event.pos): #聲音變小
+                elif sub_outline.collidepoint(_event.pos): #聲音變小
                     vol -=1
                     s_hit.set_volume(vol/10)
 
-                elif _event.button == 1 and pause_outline.collidepoint(_event.pos): #暫停
+                elif pause_outline.collidepoint(_event.pos): #暫停
                     T_count_set=T_count
                     pause_run=True
                     while pause_run:
@@ -326,7 +286,7 @@ def GUI():
                                     start_ticks=pg.time.get_ticks()
                                     pause_run=False
 
-                elif _event.button == 1 and regret_rect.collidepoint(_event.pos):
+                elif regret_rect.collidepoint(_event.pos):
                     T_count_set = T_count_set_org
                     if rboard.groups[(255, 255, 255)] and rboard.groups[(0, 0, 0)]: 
                         # 按下動畫
@@ -344,7 +304,7 @@ def GUI():
                         ai.backward()                  
                         s_hit.play()
                         time.wait(200)
-                elif _event.button == 1 and recover_rect.collidepoint(_event.pos):
+                elif recover_rect.collidepoint(_event.pos):
                     T_count_set = T_count_set_org
                     if rboard.res[(255, 255, 255)] and rboard.res[(0, 0, 0)]: 
                         # 按下動畫
@@ -359,7 +319,6 @@ def GUI():
                         print(rboard.groups)
                         next_b = rboard.res[(0, 0, 0)].pop()  
                         next_w = rboard.res[(255, 255, 255)].pop()
-                        
                         # 把棋子畫回棋盤
                         hum_stone_b = Stone(rboard, next_b, rboard.turn())
                         hum_stone_b.draw()
@@ -368,12 +327,11 @@ def GUI():
                         # 加回list
                         rboard.groups[(0, 0, 0)].append(next_b)
                         rboard.groups[(255, 255, 255)].append(next_w)
-                        Stones.append(hum_stone_b)
-                        Stones.append(hum_stone_w)
+                        Stones.append(hum_stone_b).append(hum_stone_w)
                         ai.forward()                  
                         s_hit.play()
                         time.wait(200)
-                elif _event.button == 1 and restart_rect.collidepoint(_event.pos):    
+                elif restart_rect.collidepoint(_event.pos):    
                     # 按下動畫
                     screen.blit(btn[5], RESTART_location)
                     pg.display.update()
@@ -386,12 +344,9 @@ def GUI():
 
 def Setting():  #難度設定
     font = pg.font.Font(getcwd().replace('\\','/') + '/msjhbd.ttc', 28) 
-    text_G = font.render("繼續玩五子棋?", True, (0,0,255), (224,224,80)) 
-    text_Y = font.render("是", True, (0,0,255), (224,224,80)) 
-    text_N = font.render("否", True, (255,0,0), (224,224,80)) 
-    screen.blit(text_G, (315,240))
-    screen.blit(text_Y, (390,300))
-    screen.blit(text_N, (390,360))
+    screen.blit(font.render("繼續玩五子棋?", True, (0,0,255), (224,224,80)), (315,240))
+    screen.blit(font.render("是", True, (0,0,255), (224,224,80)), (390,300))
+    screen.blit(font.render("否", True, (255,0,0), (224,224,80)), (390,360))
     display.update()
     Yes_outline = Rect(390,300,40,30)
     No_outline  = Rect(390,360,40,30)
@@ -415,12 +370,9 @@ def Setting():  #難度設定
     screen.blit(background,(0,0))
     display.update()           
     time.wait(300)
-    text_L1 = font.render("初級", True, (0,0,255), (224,224,80)) 
-    text_L2 = font.render("中級", True, (0,0,255), (224,224,80)) 
-    text_L3 = font.render("高級", True, (0,0,255), (224,224,80)) 
-    screen.blit(text_L1, (377,240))
-    screen.blit(text_L2, (377,300))
-    screen.blit(text_L3, (377,360))
+    screen.blit(font.render("初級", True, (0,0,255), (224,224,80)), (377,240))
+    screen.blit(font.render("中級", True, (0,0,255), (224,224,80)), (377,300))
+    screen.blit(font.render("高級", True, (0,0,255), (224,224,80)), (377,360))
     display.update()
     L1_outline = Rect(377,240,50,30)
     L2_outline = Rect(377,300,50,30)
@@ -490,7 +442,7 @@ if __name__ == '__main__':
     rboard = RealBoard()
     while True:
         searchDeep=Setting()     # 執行難度設定, 並回傳難度值 (1~3)
-        print("Level",searchDeep)
+        #print("Level",searchDeep)
         GUI()
         background.blit(background_org, (0, 0))
         background_red.blit(background_org, (0, 0))

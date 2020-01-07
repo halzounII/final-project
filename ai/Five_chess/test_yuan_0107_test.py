@@ -184,6 +184,8 @@ class RealBoard(object):                           # 棋盤
                         count += 1
                         if count == 5:
                             return True
+                    else:
+                        count = 0
         return False
 
     def win(self, color):
@@ -193,7 +195,7 @@ class RealBoard(object):                           # 棋盤
         s_kill.set_volume(0.7)  #設定音量大小，參值0~1
         s_cheers = pg.mixer.Sound('cheers.wav')  #括弧為音檔名稱 
         s_cheers.set_volume(0.7)  #設定音量大小，參值0~1
-        if color == rboard.turn():
+        if (change and color==WHITE) or ((not change) and color==BLACK):
             text = font.render("你贏了", True, (0,0,255), (224,224,80))
             screen.blit(text, (250,630))
             s_cheers.play()
@@ -249,6 +251,7 @@ def GUI():
     #rboard.next = BLACK
     T_count_set_org=30
     T_count_set=T_count_set_org
+    global change
     if rboard.turn() == (255, 255, 255) and rboard.groups[(0, 0, 0)] == []:
         print(11111111)
         change = True
@@ -264,6 +267,7 @@ def GUI():
             time.wait(500)
     else:
         rboard.next = BLACK
+        change = False
     print(rboard.next)
     while run:
 

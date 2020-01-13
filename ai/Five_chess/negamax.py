@@ -8,7 +8,7 @@ from random import choice
 
 # ToDo:
 #   1. rearrange deeping's result --done
-#   2. comprehend r function
+#   2. comprehend r function --done
 class var:
     MAX = s.five*10
     MIN = -MAX
@@ -81,7 +81,7 @@ def r(deep, alpha, beta, player, step: int,steps: list, spread) -> dict:
         if v['score'] > beta:
             if config.debug: print('beta pruning!')
             var.ABcut += 1
-            v['score'] = var.MAX - 1 #被剪枝，用一個大值來記錄(?)
+            v['score'] = var.MAX - 1 #被剪枝，用一個大值來記錄
             v['ABcut'] = 1
             return v
     # concatenate the cache function here
@@ -111,9 +111,9 @@ def deeping(candidates: list, player, deep = config.searchDeep):
                 if j in chosen: continue
                 if i.v['score'] > result.v['score']: result = i; var.index = j
                 elif i.v['score'] == result.v['score']:
-                    if i.v['score'] >= 0 and i.v['step'] < result.v['step']: 
+                    if i.v['score'] >= 0 and i.v['step'] < result.v['step']:  #若會贏，選擇步數最短的走法
                         result = i; var.index = j
-                    elif i.v['score'] < 0 and i.v['step'] > result.v['step']: 
+                    elif i.v['score'] < 0 and i.v['step'] > result.v['step']: #若會輸，選擇步數最長的走法拖延
                         result = i; var.index = j 
             result.score = result.v['score']
         except: KeyError

@@ -43,12 +43,12 @@ class playersScore:        # new class
         
 class Board:
     def __init__(self, size: int = 15) -> None:
-        self.evaluateCache = {}   # redundant?
+        self.evaluateCache = {}   # used in evaluate_point.py
         self.currentSteps = []    #當前的那一步，元素是playersScore()
         self.allSteps = []   # all chess pieces put by both sides, 元素是playersScore(), used in ai.py
         self.stepsTail = []  #悔棋後保留的先前棋步
         self.count = 0       #手數
-        self.z = z
+        self.z = z           #zobrist
         if size:       # accept only integer, not lists
             self.board = matrix(size)             #目前棋盤的落子狀況;元素是score.players()
             self.size = size                      #棋盤大小
